@@ -7,15 +7,17 @@ import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
 export class ShopService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.company_id) where.company_id = toBigInt(query.company_id);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-    if (query.shop_name)
-      where.shop_name = { contains: String(query.shop_name), mode: 'insensitive' };
+  async list(companyId?: number | string | bigint | null) {
+    const company_id = toBigInt(companyId);
+
+    if (company_id == null) {
+      return { success: true, data: [] };
+    }
 
     const data = await this.prisma.shop.findMany({
-      where,
+      where: {
+        company_id,
+      },
       orderBy: { id: 'desc' },
     });
     return { success: true, data };
@@ -25,8 +27,10 @@ export class ShopService {
     const id = toBigInt(data.id);
     const payload: any = {
       company_id: toBigInt(data.company_id) ?? BigInt(1),
-      display_code: data.display_code || `SHP-${randomUUID().slice(0, 6).toUpperCase()}`,
-      short_code: data.short_code || `S-${randomUUID().slice(0, 4).toUpperCase()}`,
+      display_code:
+        data.display_code || `SHP-${randomUUID().slice(0, 6).toUpperCase()}`,
+      short_code:
+        data.short_code || `S-${randomUUID().slice(0, 4).toUpperCase()}`,
       shop_name: data.shop_name,
       address: data.address,
       address_2: data.address_2,
@@ -45,15 +49,24 @@ export class ShopService {
           updated_by: toBigInt(data.updated_by ?? data.login_user_id),
         },
       });
-      return { success: true, message: 'Shop updated successfully', data: updated };
+      return {
+        success: true,
+        message: 'Shop updated successfully',
+        data: updated,
+      };
     }
 
     const created = await this.prisma.shop.create({
       data: {
         ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by:
+          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
       },
     });
-    return { success: true, message: 'Shop created successfully', data: created };
+    return {
+      success: true,
+      message: 'Shop created successfully',
+      data: created,
+    };
   }
 }

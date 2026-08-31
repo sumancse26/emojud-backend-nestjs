@@ -21,6 +21,7 @@ import {
   changePasswordSchema,
   loginSchema,
 } from './interfaces/login.interface';
+import { refreshSchema, logoutSchema } from './interfaces/login.interface';
 import type { AccessTokenPayload } from 'src/modules/auth/jwt/jwt.service';
 import { JwtService } from 'src/modules/auth/jwt/jwt.service';
 import {
@@ -68,6 +69,7 @@ export class LoginController {
 
   @Public()
   @Post('refresh')
+  @UsePipes(new ZodValidationPipe(refreshSchema.partial()))
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -101,6 +103,7 @@ export class LoginController {
   }
 
   @Post('logout')
+  @UsePipes(new ZodValidationPipe(logoutSchema.partial()))
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     // Read refresh token from cookie, fallback to body
     const refreshToken =
@@ -121,7 +124,7 @@ export class LoginController {
 
   @Get('profile')
   async getProfile(@CurrentUser() user: AccessTokenPayload) {
-    return await this.loginService.getProfile(user.sub);
+    return await this.loginService.getProfile(user.user_id.toString());
   }
 
   @Post('change-password')
@@ -133,7 +136,10 @@ export class LoginController {
     const cookies = req.cookies?.[REFRESH_TOKEN_COOKIE];
     const isVerified = await this.jwtService.verifyRefreshToken(cookies);
 
-    const res = await this.loginService.changePassword(input, isVerified.sub);
+    const res = await this.loginService.changePassword(
+      input,
+      isVerified.user_id.toString(),
+    );
 
     return res;
   }

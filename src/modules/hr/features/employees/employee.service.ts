@@ -106,16 +106,19 @@ export class EmployeeService {
 
         // 4. Generate JWT tokens using JwtService
         const accessToken = await this.jwtService.generateAccessToken({
-          id: Number(user.id),
+          user_id: Number(user.id),
           username: user.username,
-          roleId: user.default_role_id
+          company_id: user.company_id ? Number(user.company_id) : null,
+          role_id: user.default_role_id
             ? Number(user.default_role_id)
-            : undefined,
+            : null,
         });
 
         const refreshToken = await this.jwtService.generateRefreshToken(
           Number(user.id),
           sessionId,
+          user.company_id ? Number(user.company_id) : null,
+          user.default_role_id ? Number(user.default_role_id) : null,
         );
 
         const { password_hash: _, ...userWithoutPassword } = user;

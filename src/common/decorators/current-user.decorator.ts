@@ -6,7 +6,7 @@ import type { AccessTokenPayload } from '../../modules/auth/jwt/jwt.service';
  * The payload is set by AuthGuard after verifying the access token.
  *
  * Usage: @CurrentUser() user: AccessTokenPayload
- * Usage: @CurrentUser('sub') userId: string
+ * Usage: @CurrentUser('user_id') userId: number
  */
 export const CurrentUser = createParamDecorator(
   (data: keyof AccessTokenPayload | undefined, ctx: ExecutionContext) => {

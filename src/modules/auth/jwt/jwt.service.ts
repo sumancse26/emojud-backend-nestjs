@@ -4,13 +4,18 @@ import { JWTPayload, SignJWT, jwtVerify } from 'jose';
 
 export interface AccessTokenPayload extends JWTPayload {
   sub: string;
+  user_id: number;
+  company_id: number | null;
+  role_id: number | null;
   username: string;
-  roleId: number | null;
   type: 'access';
 }
 
 export interface RefreshTokenPayload extends JWTPayload {
   sub: string;
+  user_id: number;
+  company_id: number | null;
+  role_id: number | null;
   sessionId: string;
   type: 'refresh';
 }
@@ -30,20 +35,23 @@ export class JwtService {
   }
 
   async generateAccessToken(user: {
-    id: number;
+    user_id: number;
     username: string;
-    roleId?: number;
+    company_id?: number | null;
+    role_id?: number | null;
   }): Promise<string> {
     return new SignJWT({
+      user_id: user.user_id,
+      company_id: user.company_id ?? null,
+      role_id: user.role_id ?? null,
       username: user.username,
-      roleId: user.roleId ?? null,
       type: 'access',
     })
       .setProtectedHeader({
         alg: 'HS256',
         typ: 'JWT',
       })
-      .setSubject(user.id?.toString())
+      .setSubject(user.user_id.toString())
       .setIssuedAt()
       .setExpirationTime(
         this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN'),
@@ -54,8 +62,16 @@ export class JwtService {
   async generateRefreshToken(
     userId: number,
     sessionId: string,
+    companyId?: number | null,
+    roleId?: number | null,
   ): Promise<string> {
-    return new SignJWT({ sessionId, type: 'refresh' })
+    return new SignJWT({
+      user_id: userId,
+      company_id: companyId ?? null,
+      role_id: roleId ?? null,
+      sessionId,
+      type: 'refresh',
+    })
       .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
       .setSubject(userId.toString())
       .setIssuedAt()
@@ -69,7 +85,17 @@ export class JwtService {
       const { payload } = await jwtVerify(token, this.accessSecret, {
         algorithms: ['HS256'],
       });
-      if (payload.type !== 'access') {
+      if (
+        payload.type !== 'access' ||
+        typeof payload.user_id !== 'number' ||
+        !Number.isSafeInteger(payload.user_id) ||
+        (payload.company_id !== null &&
+          (typeof payload.company_id !== 'number' ||
+            !Number.isSafeInteger(payload.company_id))) ||
+        (payload.role_id !== null &&
+          (typeof payload.role_id !== 'number' ||
+            !Number.isSafeInteger(payload.role_id)))
+      ) {
         throw new UnauthorizedException('Invalid access token');
       }
       return payload as AccessTokenPayload;
@@ -82,7 +108,18 @@ export class JwtService {
       const { payload } = await jwtVerify(token, this.refreshSecret, {
         algorithms: ['HS256'],
       });
-      if (payload.type !== 'refresh') {
+      if (
+        payload.type !== 'refresh' ||
+        typeof payload.user_id !== 'number' ||
+        !Number.isSafeInteger(payload.user_id) ||
+        (payload.company_id !== null &&
+          (typeof payload.company_id !== 'number' ||
+            !Number.isSafeInteger(payload.company_id))) ||
+        (payload.role_id !== null &&
+          (typeof payload.role_id !== 'number' ||
+            !Number.isSafeInteger(payload.role_id))) ||
+        typeof payload.sessionId !== 'string'
+      ) {
         throw new UnauthorizedException('Invalid refresh token');
       }
       return payload as RefreshTokenPayload;

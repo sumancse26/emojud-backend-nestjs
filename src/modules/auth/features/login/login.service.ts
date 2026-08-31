@@ -73,14 +73,17 @@ export class LoginService {
 
     // 6. Generate tokens
     const accessToken = await this.jwtService.generateAccessToken({
-      id: Number(user.id),
+      user_id: Number(user.id),
       username: user.username,
-      roleId: user.default_role_id ? Number(user.default_role_id) : undefined,
+      company_id: user.company_id ? Number(user.company_id) : null,
+      role_id: user.default_role_id ? Number(user.default_role_id) : null,
     });
 
     const refreshToken = await this.jwtService.generateRefreshToken(
       Number(user.id),
       sessionId,
+      user.company_id ? Number(user.company_id) : null,
+      user.default_role_id ? Number(user.default_role_id) : null,
     );
 
     // 7. Build response (exclude password_hash)
@@ -105,7 +108,7 @@ export class LoginService {
     // 1. Verify the refresh token signature and claims
     const payload = await this.jwtService.verifyRefreshToken(refreshToken);
 
-    const userId = BigInt(payload.sub);
+    const userId = BigInt(payload.user_id);
     const sessionId = payload.sessionId;
 
     // 2. Validate the session exists and is active
@@ -142,6 +145,7 @@ export class LoginService {
         id: true,
         username: true,
         default_role_id: true,
+        company_id: true,
         status: true,
       },
     });
@@ -175,14 +179,17 @@ export class LoginService {
 
     // 6. Generate new token pair
     const newAccessToken = await this.jwtService.generateAccessToken({
-      id: Number(user.id),
+      user_id: Number(user.id),
       username: user.username,
-      roleId: user.default_role_id ? Number(user.default_role_id) : undefined,
+      company_id: user.company_id ? Number(user.company_id) : null,
+      role_id: user.default_role_id ? Number(user.default_role_id) : null,
     });
 
     const newRefreshToken = await this.jwtService.generateRefreshToken(
       Number(user.id),
       newSessionId,
+      user.company_id ? Number(user.company_id) : null,
+      user.default_role_id ? Number(user.default_role_id) : null,
     );
 
     return {
@@ -202,7 +209,7 @@ export class LoginService {
     // 1. Verify the refresh token
     const payload = await this.jwtService.verifyRefreshToken(refreshToken);
 
-    const userId = BigInt(payload.sub);
+    const userId = BigInt(payload.user_id);
     const sessionId = payload.sessionId;
 
     // 2. Find and deactivate the session
