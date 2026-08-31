@@ -1,0 +1,833 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+ 
+
+model AdmBlobs {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  object_type BigInt? @db.BigInt
+  is_file String @default("Y") @db.VarChar(1)
+  file_location String? @db.VarChar(100)
+  blob_object Bytes?
+  file_name String? @db.VarChar(500)
+  file_ext String? @db.VarChar(10)
+  description String? @db.VarChar(500)
+  is_public String @default("1") @db.VarChar(1)
+  parent BigInt? @db.BigInt
+  img_type String? @db.VarChar(50)
+  file_type BigInt? @db.BigInt
+  clob_obj String? @db.Text
+  display_name String? @db.VarChar(500)
+  table_name String? @db.VarChar(100)
+  file_size BigInt? @db.BigInt
+  status Int? @default(1) @db.SmallInt
+  created_by BigInt @db.BigInt
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+
+  @@map("adm_blobs")
+}
+
+model AdmUserSession {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  session_id String @db.Uuid
+  valid_until DateTime? @db.Timestamp(6)
+  user_id BigInt @db.BigInt
+  is_active String @default("Y") @db.VarChar(1)
+  device_mac String? @db.VarChar(20)
+  device_ip String? @db.VarChar(20)
+  logout_date DateTime? @db.Date
+  status Int? @default(1) @db.SmallInt
+  created_by BigInt @db.BigInt
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+
+  @@map("adm_user_session")
+}
+
+model AudTable {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  table_name String? @db.VarChar(100)
+  is_edit BigInt? @db.BigInt
+  is_view BigInt? @db.BigInt
+  is_delete BigInt? @db.BigInt
+  status BigInt? @db.BigInt
+  created_by BigInt? @db.BigInt
+  created_at DateTime? @db.Date
+  update_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Date
+
+  @@map("aud_table")
+}
+
+model Company {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  display_code String @unique @db.VarChar(50)
+  company_name String @db.VarChar(200)
+  address String? @db.VarChar(4000)
+  address_2 String? @db.VarChar(4000)
+  phone String? @db.VarChar(50)
+  email String? @db.VarChar(100)
+  slogan String? @db.VarChar(4000)
+  logo BigInt? @db.BigInt
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  shops Shop[] @relation("fk_shop_company")
+  @@map("company")
+}
+
+model CustomerDue {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  shop_id BigInt @db.BigInt
+  customer_id BigInt @db.BigInt
+  ref_type Int? @db.SmallInt
+  ref_id String? @db.VarChar(50)
+  invoice_no String? @db.VarChar(50)
+  due_date DateTime? @db.Date
+  total_amount Decimal? @default(0) @db.Decimal(16, 4)
+  paid_amount Decimal? @default(0) @db.Decimal(16, 4)
+  due_amount Decimal? @default(0) @db.Decimal(16, 4)
+  payment_status Int? @default(0) @db.SmallInt
+  remarks String? @db.VarChar(500)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  @@map("customer_due")
+}
+
+model Customers {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  shop_id BigInt? @db.BigInt
+  customer_code String? @db.VarChar(50)
+  customer_name String @db.VarChar(300)
+  phone String? @db.VarChar(50)
+  email String? @db.VarChar(100)
+  address String? @db.VarChar(500)
+  previous_due Decimal? @default(0) @db.Decimal(16, 4)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  invoiceMsts InvoiceMst[] @relation("fk_inv_customer")
+  @@map("customers")
+}
+
+model DeleteLog {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  table_id BigInt? @db.BigInt
+  table_name String? @db.Text
+  row_id BigInt? @db.BigInt
+  row_data Json? @db.JsonB
+  deleted_by BigInt? @db.BigInt
+  deleted_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("delete_log")
+}
+
+model Departments {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  display_code String @unique @db.VarChar(50)
+  department_name String @db.VarChar(200)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  employees Employees[] @relation("fk_emp_dep")
+  @@map("departments")
+}
+
+model Designations {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  display_code String @unique @db.VarChar(50)
+  designation_name String @db.VarChar(200)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  employees Employees[] @relation("fk_emp_desig")
+  @@map("designations")
+}
+
+model Employees {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  employee_code String? @unique @db.VarChar(50)
+  full_name String @db.VarChar(200)
+  phone String? @db.VarChar(50)
+  email String? @db.VarChar(100)
+  address String? @db.VarChar(500)
+  join_date DateTime? @db.Date
+  department_id BigInt? @db.BigInt
+  designation_id BigInt? @db.BigInt
+  gender BigInt? @db.BigInt
+  blood_group BigInt? @db.BigInt
+  nid String? @db.VarChar(100)
+  passport_no String? @db.VarChar(100)
+  emp_photo BigInt? @db.BigInt
+  nid_photo BigInt? @db.BigInt
+  shop_id BigInt? @db.BigInt
+  basic_salary Decimal? @db.Decimal(16, 4)
+  is_active Int? @db.SmallInt
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  photo_url String? @db.VarChar(1000)
+
+  department Departments? @relation("fk_emp_dep", fields: [department_id], references: [id])
+  designation Designations? @relation("fk_emp_desig", fields: [designation_id], references: [id])
+  shop Shop? @relation("fk_emp_shop", fields: [shop_id], references: [id])
+  salaryProcessDtls SalaryProcessDtl[] @relation("fk_spd_emp")
+  users Users[] @relation("fk_users_employee")
+  @@map("employees")
+}
+
+model ExpenseDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  expense_mst_id BigInt @db.BigInt
+  expense_head_id BigInt @db.BigInt
+  amount Decimal @db.Decimal(16, 4)
+  payment_method_id BigInt? @db.BigInt
+  remarks String? @db.VarChar(500)
+
+  expenseHead LookupDtl @relation("fk_exp_dtl_head", fields: [expense_head_id], references: [id])
+  expenseMst ExpenseMst @relation("fk_exp_dtl_mst", fields: [expense_mst_id], references: [id])
+  paymentMethod LookupDtl? @relation("fk_exp_dtl_pay_method", fields: [payment_method_id], references: [id])
+  @@map("expense_dtl")
+}
+
+model ExpenseMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  expense_no String? @unique @db.VarChar(100)
+  shop_id BigInt @db.BigInt
+  expense_date DateTime @db.Date
+  total_amount Decimal? @default(0) @db.Decimal(16, 4)
+  remarks String? @db.VarChar(500)
+  status Int? @default(1) @db.SmallInt
+  created_by BigInt? @db.BigInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  shop Shop @relation("fk_exp_mst_shop", fields: [shop_id], references: [id])
+  expenseDtls ExpenseDtl[] @relation("fk_exp_dtl_mst")
+  @@map("expense_mst")
+}
+
+model FeatureActions {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  feature_id BigInt? @db.BigInt
+  action_name String? @db.VarChar(100)
+  action_detail String? @db.VarChar(500)
+  initial_roles String? @db.VarChar(70)
+  status BigInt? @db.BigInt
+  created_by BigInt? @db.BigInt
+  created_at DateTime? @db.Date
+  update_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Date
+
+  @@map("feature_actions")
+}
+
+model Features {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  feature_name String @db.VarChar(200)
+  module_name String? @db.VarChar(100)
+  route_url String? @db.VarChar(500)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  parent BigInt? @db.BigInt
+  feature_icon String? @db.Text
+
+  roleFeatures RoleFeatures[] @relation("fk_rf_feature")
+  @@map("features")
+}
+
+model InvoiceDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  invoice_mst_id BigInt @db.BigInt
+  product_id BigInt @db.BigInt
+  qty Decimal? @db.Decimal(16, 4)
+  rate Decimal? @db.Decimal(16, 4)
+  vat_amt Decimal? @db.Decimal(16, 4)
+  disc_amt Decimal? @db.Decimal(16, 4)
+  total_amount Decimal? @db.Decimal(16, 4)
+
+  invoiceMst InvoiceMst @relation("fk_invd_mst", fields: [invoice_mst_id], references: [id])
+  product Products @relation("fk_invd_product", fields: [product_id], references: [id])
+  @@map("invoice_dtl")
+}
+
+model InvoiceMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  invoice_no String? @unique @db.VarChar(100)
+  shop_id BigInt @db.BigInt
+  customer_id BigInt @db.BigInt
+  invoice_date DateTime? @db.Date
+  total_amount Decimal? @db.Decimal(16, 4)
+  discount_amount Decimal? @db.Decimal(16, 4)
+  vat_amount Decimal? @db.Decimal(16, 4)
+  net_amount Decimal? @db.Decimal(16, 4)
+  paid_amount Decimal? @db.Decimal(16, 4)
+  due_amount Decimal? @db.Decimal(16, 4)
+  approved_by BigInt? @db.BigInt
+  approved_date DateTime? @db.Date
+  tran_status Int? @default(0) @db.SmallInt
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  is_submit BigInt? @db.BigInt
+
+  customer Customers @relation("fk_inv_customer", fields: [customer_id], references: [id])
+  shop Shop @relation("fk_inv_shop", fields: [shop_id], references: [id])
+  invoiceDtls InvoiceDtl[] @relation("fk_invd_mst")
+  @@map("invoice_mst")
+}
+
+model LookupDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  lookup_mst_id BigInt @db.BigInt
+  lookup_code String? @db.VarChar(50)
+  lookup_value String @db.VarChar(200)
+  sort_order BigInt? @db.BigInt
+  is_active Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  lookupMst LookupMst @relation("fk_lookup_dtl_mst", fields: [lookup_mst_id], references: [id])
+  expenseDtl_expenseHeadId ExpenseDtl[] @relation("fk_exp_dtl_head")
+  expenseDtl_paymentMethodId ExpenseDtl[] @relation("fk_exp_dtl_pay_method")
+  salaryProcessDtls SalaryProcessDtl[] @relation("fk_spd_pay_method")
+  @@map("lookup_dtl")
+}
+
+model LookupMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  lookup_name String? @db.VarChar(4000)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  lookupDtls LookupDtl[] @relation("fk_lookup_dtl_mst")
+  @@map("lookup_mst")
+}
+
+model ProductCategory {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  parent_category_id BigInt? @db.BigInt
+  category_name String @db.VarChar(200)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  parentCategory ProductCategory? @relation("fk_parent_category", fields: [parent_category_id], references: [id])
+  productCategorys ProductCategory[] @relation("fk_parent_category")
+  products Products[] @relation("fk_product_category")
+  @@map("product_category")
+}
+
+model ProductLot {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  product_id BigInt? @db.BigInt
+  lot_no String? @db.VarChar(100)
+  mfg_date DateTime? @db.Date
+  exp_date DateTime? @db.Date
+  purchase_rate Decimal? @db.Decimal(16, 4)
+  retail_rate Decimal? @db.Decimal(16, 4)
+  sales_rate Decimal? @db.Decimal(16, 4)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  product Products? @relation("fk_lot_product", fields: [product_id], references: [id])
+  stockTransactions StockTransaction[] @relation("fk_st_lot")
+  @@map("product_lot")
+}
+
+model ProductReturnDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  return_mst_id BigInt @db.BigInt
+  product_id BigInt @db.BigInt
+  lot_id BigInt? @db.BigInt
+  qty Decimal @db.Decimal(16, 4)
+  rate Decimal @db.Decimal(16, 4)
+  discount_amount Decimal? @default(0) @db.Decimal(16, 4)
+  vat_amount Decimal? @default(0) @db.Decimal(16, 4)
+  total_amount Decimal? @default(0) @db.Decimal(16, 4)
+  return_reason String? @db.VarChar(500)
+  status Int? @default(1) @db.SmallInt
+
+  returnMst ProductReturnMst @relation("product_return_dtl_return_mst_id_fkey", fields: [return_mst_id], references: [id])
+  @@map("product_return_dtl")
+}
+
+model ProductReturnMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  return_no String @unique @db.VarChar(100)
+  shop_id BigInt @db.BigInt
+  invoice_id BigInt @db.BigInt
+  return_date DateTime @db.Date
+  customer_id BigInt @db.BigInt
+  total_amount Decimal? @default(0) @db.Decimal(16, 4)
+  discount_amount Decimal? @default(0) @db.Decimal(16, 4)
+  vat_amount Decimal? @default(0) @db.Decimal(16, 4)
+  net_amount Decimal? @default(0) @db.Decimal(16, 4)
+  refund_amount Decimal? @default(0) @db.Decimal(16, 4)
+  return_reason String? @db.VarChar(500)
+  refund_pay_type BigInt? @db.BigInt
+  is_confirm Int? @default(0) @db.SmallInt
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  productReturnDtls ProductReturnDtl[] @relation("product_return_dtl_return_mst_id_fkey")
+  @@map("product_return_mst")
+}
+
+model Products {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  shop_id BigInt? @db.BigInt
+  product_code String @unique @db.VarChar(100)
+  barcode String? @db.VarChar(200)
+  product_name String @db.VarChar(300)
+  category_id BigInt? @db.BigInt
+  brand_id BigInt? @db.BigInt
+  unit_id BigInt? @db.BigInt
+  purchase_rate Decimal? @db.Decimal(16, 4)
+  retail_rate Decimal? @db.Decimal(16, 4)
+  sales_rate Decimal? @db.Decimal(16, 4)
+  min_stock_qty Decimal? @db.Decimal(16, 4)
+  is_batch_wise Int? @default(0) @db.SmallInt
+  is_expire_wise Int? @default(0) @db.SmallInt
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  specifications String? @db.Text
+  sub_category_id BigInt? @db.BigInt
+
+  category ProductCategory? @relation("fk_product_category", fields: [category_id], references: [id])
+  invoiceDtls InvoiceDtl[] @relation("fk_invd_product")
+  productLots ProductLot[] @relation("fk_lot_product")
+  stockTransactions StockTransaction[] @relation("fk_st_product")
+  @@map("products")
+}
+
+model PurchaseDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  purchase_mst_id BigInt? @db.BigInt
+  product_id BigInt? @db.BigInt
+  qty Decimal? @db.Decimal(16, 4)
+  purchase_rate Decimal? @db.Decimal(16, 4)
+  retail_rate Decimal? @db.Decimal(16, 4)
+  sales_rate Decimal? @db.Decimal(16, 4)
+  total_amount Decimal? @db.Decimal(16, 4)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  purchaseMst PurchaseMst? @relation("fk_pd_mst", fields: [purchase_mst_id], references: [id])
+  @@map("purchase_dtl")
+}
+
+model PurchaseMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  purchase_no String? @unique @db.VarChar(100)
+  shop_id BigInt @db.BigInt
+  warehouse_id BigInt @db.BigInt
+  supplier_id BigInt @db.BigInt
+  purchase_date DateTime? @db.Date
+  total_amount Decimal? @db.Decimal(16, 4)
+  discount_amount Decimal? @db.Decimal(16, 4)
+  vat_amount Decimal? @db.Decimal(16, 4)
+  net_amount Decimal? @db.Decimal(16, 4)
+  paid_amount Decimal? @db.Decimal(16, 4)
+  due_amount Decimal? @db.Decimal(16, 4)
+  approved_by BigInt? @db.BigInt
+  approved_date DateTime? @db.Date
+  tran_status Int? @default(0) @db.SmallInt
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  is_approved BigInt? @db.BigInt
+  is_submit BigInt? @default(0) @db.BigInt
+  is_confirm BigInt? @default(0) @db.BigInt
+  challan_no String? @db.Text
+  challan_date DateTime? @db.Date
+
+  shop Shop @relation("fk_pm_shop", fields: [shop_id], references: [id])
+  supplier Suppliers @relation("fk_pm_supplier", fields: [supplier_id], references: [id])
+  purchaseDtls PurchaseDtl[] @relation("fk_pd_mst")
+  @@map("purchase_mst")
+}
+
+model RoleFeatures {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  role_id BigInt @db.BigInt
+  feature_id BigInt @db.BigInt
+  can_view Int? @default(0) @db.SmallInt
+  can_create Int? @default(0) @db.SmallInt
+  can_edit Int? @default(0) @db.SmallInt
+  can_delete Int? @default(0) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  feature Features @relation("fk_rf_feature", fields: [feature_id], references: [id])
+  role Roles @relation("fk_rf_role", fields: [role_id], references: [id])
+  @@map("role_features")
+}
+
+model RoleWiseNavPermission {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  feature_id BigInt @db.BigInt
+  role_id BigInt? @db.BigInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+  parent BigInt? @db.BigInt
+  status Int? @default(1) @db.SmallInt
+  is_active Int? @db.SmallInt
+
+  @@map("role_wise_nav_permission")
+}
+
+model Roles {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  short_code String @db.VarChar(50)
+  role_name String @unique @db.VarChar(100)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  roleFeatures RoleFeatures[] @relation("fk_rf_role")
+  userRoles UserRoles[] @relation("fk_ur_role")
+  @@map("roles")
+}
+
+model SalaryProcessDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  salary_process_mst_id BigInt @db.BigInt
+  employee_id BigInt @db.BigInt
+  basic_salary Decimal? @default(0) @db.Decimal(16, 4)
+  allowance_amount Decimal? @default(0) @db.Decimal(16, 4)
+  bonus_amount Decimal? @default(0) @db.Decimal(16, 4)
+  overtime_amount Decimal? @default(0) @db.Decimal(16, 4)
+  deduction_amount Decimal? @default(0) @db.Decimal(16, 4)
+  net_salary Decimal @db.Decimal(16, 4)
+  paid_amount Decimal? @default(0) @db.Decimal(16, 4)
+  due_amount Decimal? @default(0) @db.Decimal(16, 4)
+  payment_date DateTime? @db.Date
+  payment_method_id BigInt? @db.BigInt
+  remarks String? @db.VarChar(500)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+
+  employee Employees @relation("fk_spd_emp", fields: [employee_id], references: [id])
+  salaryProcessMst SalaryProcessMst @relation("fk_spd_mst", fields: [salary_process_mst_id], references: [id])
+  paymentMethod LookupDtl? @relation("fk_spd_pay_method", fields: [payment_method_id], references: [id])
+  @@map("salary_process_dtl")
+}
+
+model SalaryProcessMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  process_no String? @unique @db.VarChar(100)
+  shop_id BigInt? @db.BigInt
+  salary_month BigInt @db.BigInt
+  salary_year BigInt @db.BigInt
+  process_date DateTime? @db.Date
+  total_employee BigInt? @default(0) @db.BigInt
+  total_amount Decimal? @default(0) @db.Decimal(16, 4)
+  total_paid_amount Decimal? @default(0) @db.Decimal(16, 4)
+  total_due_amount Decimal? @default(0) @db.Decimal(16, 4)
+  status Int? @default(1) @db.SmallInt
+  remarks String? @db.VarChar(500)
+  created_by BigInt? @db.BigInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+
+  shop Shop? @relation("fk_spm_shop", fields: [shop_id], references: [id])
+  salaryProcessDtls SalaryProcessDtl[] @relation("fk_spd_mst")
+  @@map("salary_process_mst")
+}
+
+model Shop {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  company_id BigInt @db.BigInt
+  display_code String @unique @db.VarChar(50)
+  short_code String @db.VarChar(50)
+  shop_name String @db.VarChar(200)
+  address String? @db.VarChar(4000)
+  address_2 String? @db.VarChar(4000)
+  phone String? @db.VarChar(50)
+  image BigInt? @db.BigInt
+  slogan String? @db.VarChar(4000)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  company Company @relation("fk_shop_company", fields: [company_id], references: [id])
+  employees Employees[] @relation("fk_emp_shop")
+  expenseMsts ExpenseMst[] @relation("fk_exp_mst_shop")
+  invoiceMsts InvoiceMst[] @relation("fk_inv_shop")
+  purchaseMsts PurchaseMst[] @relation("fk_pm_shop")
+  stockMsts StockMst[] @relation("fk_sm_shop")
+  salaryProcessMsts SalaryProcessMst[] @relation("fk_spm_shop")
+  stockTransactions StockTransaction[] @relation("fk_st_shop")
+  userShopPermissions UserShopPermission[] @relation("fk_ur_shop")
+  warehouses Warehouse[] @relation("fk_wh_shop")
+  @@map("shop")
+}
+
+model ShopWiseCommissionProfit {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  shop_id BigInt @db.BigInt
+  year_id BigInt? @db.BigInt
+  month_id BigInt? @db.BigInt
+  invoice_id BigInt? @db.BigInt
+  product_id BigInt? @db.BigInt
+  qty Decimal? @default(0) @db.Decimal(16, 4)
+  purchase_rate Decimal? @default(0) @db.Decimal(16, 4)
+  sales_rate Decimal? @default(0) @db.Decimal(16, 4)
+  profit_amount Decimal? @default(0) @db.Decimal(16, 4)
+  commission_percent Decimal? @default(0) @db.Decimal(16, 4)
+  commission_amount Decimal? @default(0) @db.Decimal(16, 4)
+  is_received_commission Int? @default(0) @db.SmallInt
+  received_date DateTime? @db.Date
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  status Int? @default(1) @db.SmallInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  dml_date DateTime? @db.Date
+
+  @@map("shop_wise_commission_profit")
+}
+
+model StockDtl {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  stock_mst_id BigInt? @db.BigInt
+  lot_id BigInt? @db.BigInt
+  prod_id BigInt? @db.BigInt
+  qty Decimal? @db.Decimal(16, 4)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  shop_id BigInt? @db.BigInt
+
+  stockMst StockMst? @relation("fk_sd_mst", fields: [stock_mst_id], references: [id])
+  @@map("stock_dtl")
+}
+
+model StockMst {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  stock_date DateTime? @db.Date
+  shop_id BigInt? @db.BigInt
+  warehouse_id BigInt? @db.BigInt
+  prod_id BigInt? @db.BigInt
+  current_stock Decimal? @db.Decimal(16, 4)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  shop Shop? @relation("fk_sm_shop", fields: [shop_id], references: [id])
+  warehouse Warehouse? @relation("fk_sm_wh", fields: [warehouse_id], references: [id])
+  stockDtls StockDtl[] @relation("fk_sd_mst")
+  @@map("stock_mst")
+}
+
+model StockTransaction {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  trn_date DateTime? @db.Date
+  product_id BigInt? @db.BigInt
+  shop_id BigInt? @db.BigInt
+  warehouse_id BigInt? @db.BigInt
+  lot_id BigInt? @db.BigInt
+  transaction_type Int? @db.SmallInt
+  qty Decimal? @db.Decimal(16, 4)
+  purchase_rate Decimal? @db.Decimal(16, 4)
+  retail_rate Decimal? @db.Decimal(16, 4)
+  sales_rate Decimal? @db.Decimal(16, 4)
+  ref_type BigInt? @db.BigInt
+  ref_id BigInt? @db.BigInt
+  ref_no String? @db.VarChar(100)
+  transaction_date DateTime? @db.Date
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  lot ProductLot? @relation("fk_st_lot", fields: [lot_id], references: [id])
+  product Products? @relation("fk_st_product", fields: [product_id], references: [id])
+  shop Shop? @relation("fk_st_shop", fields: [shop_id], references: [id])
+  warehouse Warehouse? @relation("fk_st_wh", fields: [warehouse_id], references: [id])
+  @@map("stock_transaction")
+}
+
+model SupplierPayment {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  payment_no String? @unique @db.VarChar(100)
+  shop_id BigInt @db.BigInt
+  supplier_id BigInt @db.BigInt
+  payment_date DateTime? @db.Date
+  ref_purchase_id String? @db.VarChar(50)
+  payment_method_id BigInt? @db.BigInt
+  total_due Decimal? @default(0) @db.Decimal(16, 4)
+  paid_amount Decimal? @default(0) @db.Decimal(16, 4)
+  current_due Decimal? @default(0) @db.Decimal(16, 4)
+  remarks String? @db.VarChar(500)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  @@map("supplier_payment")
+}
+
+model Suppliers {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  shop_id BigInt? @db.BigInt
+  supplier_code String? @db.VarChar(50)
+  supplier_name String @db.VarChar(300)
+  phone String? @db.VarChar(50)
+  email String? @db.VarChar(100)
+  address String? @db.VarChar(500)
+  previous_due Decimal? @default(0) @db.Decimal(16, 4)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  purchaseMsts PurchaseMst[] @relation("fk_pm_supplier")
+  @@map("suppliers")
+}
+
+model UserRoles {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  user_id BigInt @db.BigInt
+  role_id BigInt @db.BigInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+
+  role Roles @relation("fk_ur_role", fields: [role_id], references: [id])
+  user Users @relation("fk_ur_user", fields: [user_id], references: [id])
+  @@map("user_roles")
+}
+
+model UserShopPermission {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  user_id BigInt @db.BigInt
+  shop_id BigInt @db.BigInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  shop Shop @relation("fk_ur_shop", fields: [shop_id], references: [id])
+  user Users @relation("fk_usp_user", fields: [user_id], references: [id])
+  @@map("user_shop_permission")
+}
+
+model Users {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  employee_id BigInt? @db.BigInt
+  username String @unique @db.VarChar(100)
+  password_hash String @db.VarChar(500)
+  last_login DateTime? @db.Timestamp(6)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  default_role_id BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  employee Employees? @relation("fk_users_employee", fields: [employee_id], references: [id])
+  userRoles UserRoles[] @relation("fk_ur_user")
+  userShopPermissions UserShopPermission[] @relation("fk_usp_user")
+  @@map("users")
+}
+
+model Warehouse {
+  id BigInt @id @default(autoincrement()) @db.BigInt
+  shop_id BigInt? @db.BigInt
+  warehouse_name String? @db.VarChar(200)
+  address String? @db.VarChar(500)
+  status Int? @default(1) @db.SmallInt
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  created_by BigInt? @db.BigInt
+  updated_at DateTime? @db.Timestamp(6)
+  updated_by BigInt? @db.BigInt
+  company_id BigInt? @db.BigInt
+
+  shop Shop? @relation("fk_wh_shop", fields: [shop_id], references: [id])
+  stockMsts StockMst[] @relation("fk_sm_wh")
+  stockTransactions StockTransaction[] @relation("fk_st_wh")
+  @@map("warehouse")
+}
+
