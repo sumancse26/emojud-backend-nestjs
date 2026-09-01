@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PasswordServiceService } from 'src/modules/auth/password-service/password-service.service';
 import { JwtService } from 'src/modules/auth/jwt/jwt.service';
-import { CreateEmployeeInput } from './interfaces/create-employee.interface';
+import type { CreateEmployeeInput } from 'src/modules/hr/interfaces/validation.interface';
 
 @Injectable()
 export class EmployeeService {
