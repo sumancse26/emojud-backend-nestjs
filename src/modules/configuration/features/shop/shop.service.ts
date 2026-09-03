@@ -23,50 +23,30 @@ export class ShopService {
     return { success: true, data };
   }
 
-  async save(data: Record<string, any>) {
-    const id = toBigInt(data.id);
-    const payload: any = {
-      company_id: toBigInt(data.company_id) ?? BigInt(1),
-      display_code:
-        data.display_code || `SHP-${randomUUID().slice(0, 6).toUpperCase()}`,
-      short_code:
-        data.short_code || `S-${randomUUID().slice(0, 4).toUpperCase()}`,
-      shop_name: data.shop_name,
-      address: data.address,
-      address_2: data.address_2,
-      phone: data.phone,
-      image: toBigInt(data.image),
-      slogan: data.slogan,
-      status: toNumber(data.status) ?? 1,
-    };
+  async userShopList(companyId: number, userId: number) {
+    const company_id = toBigInt(companyId);
+    const user_id = toBigInt(userId);
 
-    if (id) {
-      const updated = await this.prisma.shop.update({
-        where: { id },
-        data: {
-          ...payload,
-          updated_at: new Date(),
-          updated_by: toBigInt(data.updated_by ?? data.login_user_id),
-        },
-      });
-      return {
-        success: true,
-        message: 'Shop updated successfully',
-        data: updated,
-      };
-    }
-
-    const created = await this.prisma.shop.create({
-      data: {
-        ...payload,
-        created_by:
-          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+    const user = await this.prisma.userShopPermission.findMany({
+      where: {
+        user_id: user_id,
+        company_id: company_id,
       },
     });
-    return {
-      success: true,
-      message: 'Shop created successfully',
-      data: created,
-    };
+
+    const shop = await this.prisma.shop.findMany({
+      where: {
+        id: { in: user.map((item) => item.shop_id) },
+      },
+      orderBy: { id: 'desc' },
+      omit: {
+        created_at: true,
+        created_by: true,
+        updated_at: true,
+        updated_by: true,
+      },
+    });
+
+    return { success: true, data: shop };
   }
 }

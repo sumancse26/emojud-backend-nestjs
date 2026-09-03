@@ -6,18 +6,44 @@ import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
 export class ProductCategoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.company_id) where.company_id = toBigInt(query.company_id);
-    if (query.parent_category_id)
-      where.parent_category_id = toBigInt(query.parent_category_id);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-    if (query.category_name)
-      where.category_name = { contains: String(query.category_name), mode: 'insensitive' };
+  async list(companyId: number) {
+    const company_id = toBigInt(companyId);
+
+    if (company_id == null) {
+      return { success: true, data: [] };
+    }
 
     const data = await this.prisma.productCategory.findMany({
-      where,
-      include: { parentCategory: true, productCategorys: true },
+      where: {
+        company_id,
+        parent_category_id: null,
+      },
+      select: {
+        id: true,
+        category_name: true,
+      },
+      orderBy: { id: 'desc' },
+    });
+    return { success: true, data };
+  }
+
+  async subCategoryList(parentCategoryId: number, companyId: number) {
+    const parent_category_id = toBigInt(parentCategoryId);
+    const company_id = toBigInt(companyId);
+
+    if (parent_category_id == null || company_id == null) {
+      return { success: true, data: [] };
+    }
+
+    const data = await this.prisma.productCategory.findMany({
+      where: {
+        company_id,
+        parent_category_id,
+      },
+      select: {
+        id: true,
+        category_name: true,
+      },
       orderBy: { id: 'desc' },
     });
     return { success: true, data };
@@ -41,15 +67,24 @@ export class ProductCategoryService {
           updated_by: toBigInt(data.updated_by ?? data.login_user_id),
         },
       });
-      return { success: true, message: 'Category updated successfully', data: updated };
+      return {
+        success: true,
+        message: 'Category updated successfully',
+        data: updated,
+      };
     }
 
     const created = await this.prisma.productCategory.create({
       data: {
         ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by:
+          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
       },
     });
-    return { success: true, message: 'Category created successfully', data: created };
+    return {
+      success: true,
+      message: 'Category created successfully',
+      data: created,
+    };
   }
 }
