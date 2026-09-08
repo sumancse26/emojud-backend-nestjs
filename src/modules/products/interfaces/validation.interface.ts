@@ -1,12 +1,26 @@
 import { z } from 'zod';
 
-const id = z.coerce.number().int().positive();
+const id = z.preprocess((val) => {
+  if (
+    val === '' ||
+    val === null ||
+    val === undefined ||
+    val === 0 ||
+    val === '0'
+  ) {
+    return undefined;
+  }
+  return Number(val);
+}, z.number().int().positive().optional());
 
 // Common Validation Schemas
-export const idParamSchema = id;
+export const idParamSchema = z.coerce.number().int().positive();
 export const textParamSchema = z.string().trim().min(1);
 
-export const listQuerySchema = z
+// ============================================================================
+// Feature: Products
+// ============================================================================
+export const productListQuerySchema = z
   .object({
     id: id.optional(),
     shop_id: id.optional(),
@@ -22,14 +36,14 @@ export const listQuerySchema = z
   })
   .passthrough();
 
-export const saveBodySchema = z
+export const saveProductSchema = z
   .object({
     id: id.optional(),
-    product_name: z.string().min(1, 'Product name is required'),
-    product_code: z.string().optional(),
+    product_name: z.string().trim().min(1, 'Product name is required'),
+    product_code: z.string().trim().optional(),
     product_description: z.string().optional(),
-    sku: z.string().optional(),
-    barcode: z.string().optional(),
+    sku: z.string().trim().optional(),
+    barcode: z.string().trim().optional(),
     category_id: id.optional(),
     sub_category_id: id.optional(),
     brand_id: id.optional(),
@@ -47,10 +61,19 @@ export const saveBodySchema = z
   })
   .passthrough();
 
+export const productSchema = saveProductSchema;
+
+// Backward-compatible generic schemas
+export const listQuerySchema = productListQuerySchema;
+export const saveBodySchema = saveProductSchema;
+
+// ============================================================================
 // TypeScript Types & Interfaces
-export type ProductListQuery = z.infer<typeof listQuerySchema>;
-export type ProductInput = z.infer<typeof saveBodySchema>;
-export type ProductSaveBody = ProductInput;
+// ============================================================================
+export type SaveProductInput = z.infer<typeof saveProductSchema>;
+export type ProductInput = SaveProductInput;
+export type ProductSaveBody = SaveProductInput;
+export type ProductListQuery = z.infer<typeof productListQuerySchema>;
 export type ProductIdParam = z.infer<typeof idParamSchema>;
 
 export interface ProductDetails {

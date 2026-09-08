@@ -14,6 +14,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { StockManagementModule } from './modules/stock-management/stock-management.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { LookupModule } from './modules/lookup/lookup.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     StockManagementModule,
     AccountsModule,
     ReportsModule,
+    LookupModule,
   ],
   controllers: [AppController],
   providers: [
