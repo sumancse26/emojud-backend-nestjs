@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
+import { toLowerCase } from 'zod';
 
 @Injectable()
 export class DepartmentsService {
@@ -48,6 +49,21 @@ export class DepartmentsService {
         success: true,
         message: 'Department updated successfully',
         id: updated.id,
+      };
+    }
+    const existed = await this.prisma.departments.findFirst({
+      where: {
+        department_name: {
+          equals: data.department_name?.trim(),
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existed) {
+      return {
+        success: false,
+        message: 'Department already exist',
       };
     }
 

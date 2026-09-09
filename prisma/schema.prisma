@@ -207,6 +207,8 @@ model Employees {
   shop Shop? @relation("fk_emp_shop", fields: [shop_id], references: [id])
   salaryProcessDtls SalaryProcessDtl[] @relation("fk_spd_emp")
   users Users[] @relation("fk_users_employee")
+  genderLookup     LookupDtl? @relation("fk_emp_gender", fields: [gender], references: [id])
+  bloodGroupLookup LookupDtl? @relation("fk_emp_blood_group", fields: [blood_group], references: [id])
   @@map("employees")
 }
 
@@ -331,6 +333,8 @@ model LookupDtl {
   expenseDtl_expenseHeadId ExpenseDtl[] @relation("fk_exp_dtl_head")
   expenseDtl_paymentMethodId ExpenseDtl[] @relation("fk_exp_dtl_pay_method")
   salaryProcessDtls SalaryProcessDtl[] @relation("fk_spd_pay_method")
+  genderLookup     Employees[] @relation("fk_emp_gender")
+  bloodGroupLookup Employees[] @relation("fk_emp_blood_group")
   @@map("lookup_dtl")
 }
 

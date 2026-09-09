@@ -1,11 +1,16 @@
-import { Body, Controller, Get, Post, Query, Req, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UsePipes,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { EmployeeService } from './employee.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import {
-  listQuerySchema,
-  createEmployeeSchema,
-} from 'src/modules/hr/interfaces/validation.interface';
+import { createEmployeeSchema } from 'src/modules/hr/interfaces/validation.interface';
 import type { CreateEmployeeInput } from 'src/modules/hr/interfaces/validation.interface';
 import { getClientIp, getClientMac } from 'src/common/utils/device-info.util';
 
@@ -14,9 +19,8 @@ export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Get('employees')
-  @UsePipes(new ZodValidationPipe(listQuerySchema))
   async list(@Query() q: any) {
-    return await this.employeeService.list(q);
+    return await this.employeeService.list(Number(q.shop_id));
   }
 
   @Post('employee/create')
