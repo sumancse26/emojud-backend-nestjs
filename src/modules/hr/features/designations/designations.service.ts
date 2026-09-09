@@ -7,47 +7,88 @@ import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
 export class DesignationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.company_id) where.company_id = toBigInt(query.company_id);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-    if (query.designation_name)
-      where.designation_name = { contains: String(query.designation_name), mode: 'insensitive' };
-
-    const data = await this.prisma.designations.findMany({
-      where,
-      orderBy: { id: 'desc' },
-    });
-    return { success: true, data };
+  async list(companyId: number) {
+    try {
+      const data = await this.prisma.designations.findMany({
+        where: {
+          company_id: companyId,
+          status: 1,
+        },
+        select: {
+          id: true,
+          display_code: true,
+          designation_name: true,
+        },
+        orderBy: { id: 'desc' },
+      });
+      return { success: true, data };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
   }
 
-  async save(data: Record<string, any>) {
-    const id = toBigInt(data.id);
-    const payload: any = {
-      display_code: data.display_code || `DSG-${randomUUID().slice(0, 6).toUpperCase()}`,
-      designation_name: data.designation_name,
-      company_id: toBigInt(data.company_id),
-      status: toNumber(data.status) ?? 1,
-    };
+  async save(data: Record<string, any>, userInfo: Record<string, any>) {
+    try {
+      const id = toBigInt(data.id);
+      const payload: any = {
+        display_code:
+          data.display_code || `DSG-${randomUUID().slice(0, 6).toUpperCase()}`,
+        designation_name: data.designation_name,
+        company_id: toBigInt(userInfo?.companyId),
+        status: toNumber(data.status) ?? 1,
+      };
 
-    if (id) {
-      const updated = await this.prisma.designations.update({
-        where: { id },
-        data: {
-          ...payload,
-          updated_at: new Date(),
-          updated_by: toBigInt(data.updated_by ?? data.login_user_id),
+      if (id) {
+        const updated = await this.prisma.designations.update({
+          where: { id },
+          data: {
+            ...payload,
+            updated_at: new Date(),
+            updated_by: toBigInt(userInfo?.userId),
+          },
+        });
+        return {
+          success: true,
+          message: 'Designation updated successfully',
+          id: updated.id,
+        };
+      }
+
+      const existed = await this.prisma.designations.findFirst({
+        where: {
+          designation_name: {
+            equals: data.designation_name?.trim(),
+            mode: 'insensitive',
+          },
         },
       });
-      return { success: true, message: 'Designation updated successfully', data: updated };
-    }
 
-    const created = await this.prisma.designations.create({
-      data: {
-        ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
-      },
-    });
-    return { success: true, message: 'Designation created successfully', data: created };
+      if (existed) {
+        return {
+          success: false,
+          message: 'Already exist',
+        };
+      }
+
+      const created = await this.prisma.designations.create({
+        data: {
+          ...payload,
+          created_by: toBigInt(userInfo?.userId),
+        },
+      });
+      return {
+        success: true,
+        message: 'Designation created successfully',
+        id: created.id,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
   }
 }
