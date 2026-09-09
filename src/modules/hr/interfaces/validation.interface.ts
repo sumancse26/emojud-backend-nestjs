@@ -25,11 +25,7 @@ export const saveDepartmentSchema = z
     id: id.optional(),
     department_name: z.string().trim().min(1, 'Department name is required'),
     display_code: z.string().trim().optional(),
-    company_id: id.optional(),
     status: z.coerce.number().int().optional(),
-    login_user_id: id.optional(),
-    created_by: id.optional(),
-    updated_by: id.optional(),
   })
   .passthrough();
 
@@ -119,7 +115,10 @@ export const createEmployeeSchema = z
     created_by: id.optional(),
 
     // User Account Details
-    username: z.string().trim().min(3, 'Username must be at least 3 characters'),
+    username: z
+      .string()
+      .trim()
+      .min(3, 'Username must be at least 3 characters'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     default_role_id: id.optional(),
     company_id: id.optional(),

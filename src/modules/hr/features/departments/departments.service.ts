@@ -7,26 +7,31 @@ import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
 export class DepartmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.company_id) where.company_id = toBigInt(query.company_id);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-    if (query.department_name)
-      where.department_name = { contains: String(query.department_name), mode: 'insensitive' };
-
+  async list(companyId: number) {
     const data = await this.prisma.departments.findMany({
-      where,
+      where: {
+        company_id: companyId,
+        status: 1,
+      },
+      omit: {
+        created_at: true,
+        created_by: true,
+        updated_at: true,
+        updated_by: true,
+        status: true,
+      },
       orderBy: { id: 'desc' },
     });
     return { success: true, data };
   }
 
-  async save(data: Record<string, any>) {
+  async save(data: Record<string, any>, companyId: number, userId: number) {
     const id = toBigInt(data.id);
     const payload: any = {
-      display_code: data.display_code || `DEP-${randomUUID().slice(0, 6).toUpperCase()}`,
+      display_code:
+        data.display_code || `DEP-${randomUUID().slice(0, 6).toUpperCase()}`,
       department_name: data.department_name,
-      company_id: toBigInt(data.company_id),
+      company_id: toBigInt(companyId),
       status: toNumber(data.status) ?? 1,
     };
 
@@ -36,18 +41,26 @@ export class DepartmentsService {
         data: {
           ...payload,
           updated_at: new Date(),
-          updated_by: toBigInt(data.updated_by ?? data.login_user_id),
+          updated_by: toBigInt(userId),
         },
       });
-      return { success: true, message: 'Department updated successfully', data: updated };
+      return {
+        success: true,
+        message: 'Department updated successfully',
+        id: updated.id,
+      };
     }
 
     const created = await this.prisma.departments.create({
       data: {
         ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by: toBigInt(userId),
       },
     });
-    return { success: true, message: 'Department created successfully', data: created };
+    return {
+      success: true,
+      message: 'Department created successfully',
+      id: created.id,
+    };
   }
 }
