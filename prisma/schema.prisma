@@ -131,6 +131,7 @@ model Customers {
   updated_by BigInt? @db.BigInt
 
   invoiceMsts InvoiceMst[] @relation("fk_inv_customer")
+  shop Shop? @relation("fk_cust_shop", fields: [shop_id], references: [id])
   @@map("customers")
 }
 
@@ -627,6 +628,7 @@ model Shop {
 
   company Company @relation("fk_shop_company", fields: [company_id], references: [id])
   employees Employees[] @relation("fk_emp_shop")
+  customers Customers[] @relation("fk_cust_shop")
   expenseMsts ExpenseMst[] @relation("fk_exp_mst_shop")
   invoiceMsts InvoiceMst[] @relation("fk_inv_shop")
   purchaseMsts PurchaseMst[] @relation("fk_pm_shop")

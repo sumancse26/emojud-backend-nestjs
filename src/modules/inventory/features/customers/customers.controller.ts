@@ -1,7 +1,19 @@
-import { Body, Controller, Get, Param, Post, Query, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UsePipes,
+} from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { listQuerySchema, saveBodySchema, textParamSchema } from 'src/modules/inventory/interfaces/validation.interface';
+import { saveBodySchema } from 'src/modules/inventory/interfaces/validation.interface';
+import type { Request } from 'express';
+import { decodeCookie } from 'src/common/utils/cookie.util';
+import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
 
 @Controller('api')
 export class CustomersController {
@@ -9,18 +21,19 @@ export class CustomersController {
 
   @Post('customers')
   @UsePipes(new ZodValidationPipe(saveBodySchema))
-  customer(@Body() b: any) {
-    return this.customersService.save(b);
+  customer(@Body() b: any, @Req() req: Request) {
+    const cookieData = decodeCookie<RefreshTokenPayload>(req);
+
+    return this.customersService.save(b, Number(cookieData?.user_id));
   }
 
   @Get('customers')
-  @UsePipes(new ZodValidationPipe(listQuerySchema))
   customers(@Query() q: any) {
     return this.customersService.list(q);
   }
 
   @Get('customers/:phone')
-  customerByPhone(@Param('phone', new ZodValidationPipe(textParamSchema)) phone: string) {
-    return this.customersService.list({ phone });
+  customerByPhone(@Param('phone') phone: string) {
+    return this.customersService.customerByPhone(phone);
   }
 }
