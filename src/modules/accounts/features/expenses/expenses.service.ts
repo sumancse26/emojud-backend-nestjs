@@ -7,79 +7,129 @@ import { toBigInt, toDate, toNumber } from 'src/common/utils/prisma.util';
 export class ExpensesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.shop_id) where.shop_id = toBigInt(query.shop_id);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-    if (query.expense_no)
-      where.expense_no = { contains: String(query.expense_no), mode: 'insensitive' };
-
-    const data = await this.prisma.expenseMst.findMany({
-      where,
-      include: { expenseDtls: true },
-      orderBy: { id: 'desc' },
-    });
-    return { success: true, data };
-  }
-
-  async detail(id: string) {
-    const data = await this.prisma.expenseMst.findUnique({
-      where: { id: BigInt(id) },
-      include: { expenseDtls: true, shop: true },
-    });
-    if (!data) throw new NotFoundException('Expense not found');
-    return { success: true, data };
-  }
-
-  async save(data: Record<string, any>) {
-    const id = toBigInt(data.id);
-    const details: any[] = Array.isArray(data.details) ? data.details : [];
-
-    const result = await this.prisma.$transaction(async (tx) => {
-      const masterPayload: any = {
-        expense_no: data.expense_no || `EXP-${randomUUID().slice(0, 8).toUpperCase()}`,
-        shop_id: toBigInt(data.shop_id) ?? BigInt(1),
-        expense_date: toDate(data.expense_date) ?? new Date(),
-        total_amount: data.total_amount ? Number(data.total_amount) : 0,
-        remarks: data.remarks,
-        status: toNumber(data.status) ?? 1,
+  async list(shopId: number) {
+    try {
+      const data = await this.prisma.expenseMst.findMany({
+        where: { shop_id: shopId },
+        select: {
+          id: true,
+          expense_no: true,
+          expense_date: true,
+          remarks: true,
+        },
+        orderBy: { id: 'desc' },
+      });
+      return { success: true, data };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
       };
+    }
+  }
 
-      const master = id
-        ? await tx.expenseMst.update({
-            where: { id },
-            data: { ...masterPayload },
-          })
-        : await tx.expenseMst.create({
+  async detail(id: number) {
+    try {
+      const data = await this.prisma.expenseDtl.findMany({
+        where: { expense_mst_id: BigInt(id) },
+        select: {
+          id: true,
+          amount: true,
+          remarks: true,
+          expenseMst: {
+            select: {
+              id: true,
+              expense_no: true,
+              expense_date: true,
+            },
+          },
+          expenseHead: {
+            select: {
+              id: true,
+              lookup_code: true,
+              lookup_value: true,
+            },
+          },
+          paymentMethod: {
+            select: {
+              id: true,
+              lookup_code: true,
+              lookup_value: true,
+            },
+          },
+        },
+      });
+      if (!data) throw new NotFoundException('Expense not found');
+      return { success: true, data };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
+  }
+
+  async save(data: Record<string, any>, userId: number) {
+    try {
+      const id = toBigInt(data.id);
+      const details: any[] = Array.isArray(data.details) ? data.details : [];
+
+      const result = await this.prisma.$transaction(async (tx) => {
+        const masterPayload: any = {
+          expense_no:
+            data.expense_no || `EXP-${randomUUID().slice(0, 8).toUpperCase()}`,
+          shop_id: toBigInt(data.shop_id) ?? BigInt(1),
+          expense_date: toDate(data.expense_date) ?? new Date(),
+          total_amount: data.total_amount ? Number(data.total_amount) : 0,
+          remarks: data.remarks,
+          status: toNumber(data.status) ?? 1,
+        };
+
+        const master = id
+          ? await tx.expenseMst.update({
+              where: { id },
+              data: { ...masterPayload },
+            })
+          : await tx.expenseMst.create({
+              data: {
+                ...masterPayload,
+                created_by: toBigInt(userId),
+              },
+            });
+
+        if (id) {
+          await tx.expenseDtl.deleteMany({
+            where: { expense_mst_id: master.id },
+          });
+        }
+
+        for (const item of details) {
+          await tx.expenseDtl.create({
             data: {
-              ...masterPayload,
-              created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+              expense_mst_id: master.id,
+              expense_head_id: toBigInt(item.expense_head_id) ?? BigInt(1),
+              amount: item.amount ? Number(item.amount) : 0,
+              payment_method_id: toBigInt(item.payment_method_id),
+              remarks: item.remarks,
             },
           });
+        }
 
-      if (id) {
-        await tx.expenseDtl.deleteMany({ where: { expense_mst_id: master.id } });
-      }
+        return master;
+      });
 
-      for (const item of details) {
-        await tx.expenseDtl.create({
-          data: {
-            expense_mst_id: master.id,
-            expense_head_id: toBigInt(item.expense_head_id) ?? BigInt(1),
-            amount: item.amount ? Number(item.amount) : 0,
-            payment_method_id: toBigInt(item.payment_method_id),
-            remarks: item.remarks,
-          },
-        });
-      }
-
-      return master;
-    });
-
-    return {
-      success: true,
-      message: id ? 'Expense updated successfully' : 'Expense created successfully',
-      data: result,
-    };
+      return {
+        success: true,
+        message: id
+          ? 'Expense updated successfully'
+          : 'Expense created successfully',
+        id: result.id,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
   }
 }

@@ -117,7 +117,7 @@ export class SupplierPaymentService {
     }
   }
 
-  async save(data: Record<string, any>) {
+  async save(data: Record<string, any>, userId: number) {
     const id = toBigInt(data.id);
     const shopId = toBigInt(data.shop_id) ?? BigInt(1);
     const supplierId = toBigInt(data.supplier_id) ?? BigInt(1);
@@ -149,7 +149,7 @@ export class SupplierPaymentService {
             current_due: payload.current_due,
             remarks: payload.remarks,
             updated_at: new Date(),
-            updated_by: toBigInt(data.updated_by ?? data.login_user_id),
+            updated_by: toBigInt(userId),
           },
         });
       });

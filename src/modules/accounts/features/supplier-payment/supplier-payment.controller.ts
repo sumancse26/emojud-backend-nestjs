@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Req,
+  Post,
+  Query,
+  UsePipes,
+} from '@nestjs/common';
 import { SupplierPaymentService } from './supplier-payment.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
@@ -6,6 +14,9 @@ import {
   saveBodySchema,
 } from 'src/modules/accounts/interfaces/validation.interface';
 
+import type { Request } from 'express';
+import { decodeCookie } from 'src/common/utils/cookie.util';
+import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
 @Controller('api')
 export class SupplierPaymentController {
   constructor(
@@ -29,7 +40,8 @@ export class SupplierPaymentController {
 
   @Post('supplier-payment')
   @UsePipes(new ZodValidationPipe(saveBodySchema))
-  saveSupplierPayment(@Body() b: any) {
-    return this.supplierPaymentService.save(b);
+  saveSupplierPayment(@Body() b: any, @Req() req: Request) {
+    const cookieData = decodeCookie<RefreshTokenPayload>(req);
+    return this.supplierPaymentService.save(b, Number(cookieData?.user_id));
   }
 }
