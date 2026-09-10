@@ -79,45 +79,52 @@ export class CustomersService {
   }
 
   async save(data: Record<string, any>, userId: number) {
-    const id = toBigInt(data.id);
-    const payload: any = {
-      shop_id: toBigInt(data.shop_id),
-      customer_code:
-        data.customer_code || `CUS-${Date.now().toString(36).toUpperCase()}`,
-      customer_name: data.customer_name,
-      phone: data.phone,
-      email: data.email,
-      address: data.address,
-      previous_due: data.previous_due ? Number(data.previous_due) : 0,
-      status: toNumber(data.status) ?? 1,
-    };
+    try {
+      const id = toBigInt(data.id);
+      const payload: any = {
+        shop_id: toBigInt(data.shop_id),
+        customer_code:
+          data.customer_code || `CUS-${Date.now().toString(36).toUpperCase()}`,
+        customer_name: data.customer_name,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        previous_due: data.previous_due ? Number(data.previous_due) : 0,
+        status: toNumber(data.status) ?? 1,
+      };
 
-    if (id) {
-      const updated = await this.prisma.customers.update({
-        where: { id },
+      if (id) {
+        const updated = await this.prisma.customers.update({
+          where: { id },
+          data: {
+            ...payload,
+            updated_at: new Date(),
+            updated_by: toBigInt(userId),
+          },
+        });
+        return {
+          success: true,
+          message: 'Customer updated successfully',
+          id: updated.id,
+        };
+      }
+
+      const created = await this.prisma.customers.create({
         data: {
           ...payload,
-          updated_at: new Date(),
-          updated_by: toBigInt(userId),
+          created_by: toBigInt(userId),
         },
       });
       return {
         success: true,
-        message: 'Customer updated successfully',
-        data: updated,
+        message: 'Customer created successfully',
+        id: created.id,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
       };
     }
-
-    const created = await this.prisma.customers.create({
-      data: {
-        ...payload,
-        created_by: toBigInt(userId),
-      },
-    });
-    return {
-      success: true,
-      message: 'Customer created successfully',
-      data: created,
-    };
   }
 }

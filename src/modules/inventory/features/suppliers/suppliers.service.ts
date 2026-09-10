@@ -6,53 +6,112 @@ import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
 export class SuppliersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.shop_id) where.shop_id = toBigInt(query.shop_id);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-    if (query.supplier_name)
-      where.supplier_name = { contains: String(query.supplier_name), mode: 'insensitive' };
-    if (query.phone)
-      where.phone = { contains: String(query.phone) };
-
-    const data = await this.prisma.suppliers.findMany({
-      where,
-      orderBy: { id: 'desc' },
-    });
-    return { success: true, data };
+  async list(shopId: number) {
+    try {
+      const data = await this.prisma.suppliers.findMany({
+        where: { shop_id: shopId, status: 1 },
+        omit: {
+          status: true,
+          created_at: true,
+          created_by: true,
+          updated_at: true,
+          updated_by: true,
+        },
+        orderBy: { id: 'desc' },
+      });
+      return { success: true, data };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
   }
 
-  async save(data: Record<string, any>) {
-    const id = toBigInt(data.id);
-    const payload: any = {
-      shop_id: toBigInt(data.shop_id),
-      supplier_code: data.supplier_code || `SUP-${Date.now().toString(36).toUpperCase()}`,
-      supplier_name: data.supplier_name,
-      phone: data.phone,
-      email: data.email,
-      address: data.address,
-      previous_due: data.previous_due ? Number(data.previous_due) : 0,
-      status: toNumber(data.status) ?? 1,
-    };
+  async supplierByPhone(phone: string) {
+    try {
+      const data = await this.prisma.suppliers.findMany({
+        where: {
+          phone: {
+            equals: phone,
+            mode: 'insensitive',
+          },
+        },
+        omit: {
+          status: true,
+          created_at: true,
+          created_by: true,
+          updated_at: true,
+          updated_by: true,
+        },
+        orderBy: { id: 'desc' },
+      });
+      return { success: true, data };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
+  }
 
-    if (id) {
-      const updated = await this.prisma.suppliers.update({
-        where: { id },
+  async save(data: Record<string, any>, userId: number) {
+    try {
+      const id = toBigInt(data.id);
+      const payload: any = {
+        shop_id: toBigInt(data.shop_id),
+        supplier_code:
+          data.supplier_code || `SUP-${Date.now().toString(36).toUpperCase()}`,
+        supplier_name: data.supplier_name,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        previous_due: data.previous_due ? Number(data.previous_due) : 0,
+        status: toNumber(data.status) ?? 1,
+      };
+
+      if (id) {
+        const updated = await this.prisma.suppliers.update({
+          where: { id },
+          data: {
+            ...payload,
+            updated_at: new Date(),
+            updated_by: toBigInt(userId),
+          },
+        });
+        return {
+          success: true,
+          message: 'Supplier updated successfully',
+          id: updated.id,
+        };
+      }
+      const existed = await this.prisma.suppliers.findFirst({
+        where: { phone: data.phone },
+      });
+      if (existed) {
+        return {
+          success: false.valueOf,
+          message: 'Supplier already exist.',
+        };
+      }
+
+      const created = await this.prisma.suppliers.create({
         data: {
           ...payload,
-          updated_at: new Date(),
-          updated_by: toBigInt(data.updated_by ?? data.login_user_id),
+          created_by: toBigInt(userId),
         },
       });
-      return { success: true, message: 'Supplier updated successfully', data: updated };
-    }
 
-    const created = await this.prisma.suppliers.create({
-      data: {
-        ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
-      },
-    });
-    return { success: true, message: 'Supplier created successfully', data: created };
+      return {
+        success: true,
+        message: 'Supplier created successfully',
+        id: created.id,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message,
+      };
+    }
   }
 }
