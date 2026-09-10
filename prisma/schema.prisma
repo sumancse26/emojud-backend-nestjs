@@ -304,7 +304,7 @@ model InvoiceMst {
   due_amount Decimal? @db.Decimal(16, 4)
   approved_by BigInt? @db.BigInt
   approved_date DateTime? @db.Date
-  tran_status Int? @default(0) @db.SmallInt
+  tran_status BigInt? @default(0) @db.BigInt
   status Int? @default(1) @db.SmallInt
   created_at DateTime? @default(now()) @db.Timestamp(6)
   created_by BigInt? @db.BigInt
@@ -314,6 +314,7 @@ model InvoiceMst {
 
   customer Customers @relation("fk_inv_customer", fields: [customer_id], references: [id])
   shop Shop @relation("fk_inv_shop", fields: [shop_id], references: [id])
+  tranStatus LookupDtl? @relation("fk_lookup_inv_mst", fields: [tran_status], references: [id])
   invoiceDtls InvoiceDtl[] @relation("fk_invd_mst")
   @@map("invoice_mst")
 }
@@ -336,6 +337,7 @@ model LookupDtl {
   salaryProcessDtls SalaryProcessDtl[] @relation("fk_spd_pay_method")
   genderLookup     Employees[] @relation("fk_emp_gender")
   bloodGroupLookup Employees[] @relation("fk_emp_blood_group")
+  tranStatus InvoiceMst[] @relation("fk_lookup_inv_mst")
   @@map("lookup_dtl")
 }
 
