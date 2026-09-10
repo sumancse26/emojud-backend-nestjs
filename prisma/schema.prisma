@@ -754,6 +754,8 @@ model SupplierPayment {
   updated_at DateTime? @db.Timestamp(6)
   updated_by BigInt? @db.BigInt
 
+  supplierPayment Suppliers @relation("fk_sup_payment", fields: [supplier_id], references: [id])
+
   @@map("supplier_payment")
 }
 
@@ -773,6 +775,7 @@ model Suppliers {
   updated_by BigInt? @db.BigInt
 
   purchaseMsts PurchaseMst[] @relation("fk_pm_supplier")
+  supplierPayment SupplierPayment[] @relation("fk_sup_payment")
   @@map("suppliers")
 }
 
