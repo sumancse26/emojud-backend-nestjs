@@ -338,6 +338,8 @@ model LookupDtl {
   genderLookup     Employees[] @relation("fk_emp_gender")
   bloodGroupLookup Employees[] @relation("fk_emp_blood_group")
   tranStatus InvoiceMst[] @relation("fk_lookup_inv_mst")
+  brand Products[] @relation("fk_product_lookup")
+  units Products[] @relation("fk_unit_lookup")
   @@map("lookup_dtl")
 }
 
@@ -456,9 +458,11 @@ model Products {
   sub_category_id BigInt? @db.BigInt
 
   category ProductCategory? @relation("fk_product_category", fields: [category_id], references: [id])
+  brand LookupDtl? @relation("fk_product_lookup", fields: [brand_id], references: [id])
+  units LookupDtl? @relation("fk_unit_lookup", fields: [unit_id], references: [id])
   invoiceDtls InvoiceDtl[] @relation("fk_invd_product")
   productLots ProductLot[] @relation("fk_lot_product")
-  stockTransactions StockTransaction[] @relation("fk_st_product")
+  stockTransactions StockTransaction[] @relation("fk_st_product") 
   @@map("products")
 }
 
