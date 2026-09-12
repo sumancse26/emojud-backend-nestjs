@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { LookupService } from './lookup.service';
 
-@Controller('api/common')
+@Controller('common')
 export class LookupController {
   constructor(private readonly lookupService: LookupService) {}
 

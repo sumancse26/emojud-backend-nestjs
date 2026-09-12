@@ -19,7 +19,7 @@ export class ExpensesService {
         },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { message: 'Fetch successful', data };
     } catch (err: any) {
       return {
         success: false,
@@ -60,7 +60,7 @@ export class ExpensesService {
         },
       });
       if (!data) throw new NotFoundException('Expense not found');
-      return { success: true, data };
+      return { message: 'Fetch successful', data };
     } catch (err: any) {
       return {
         success: false,
@@ -119,11 +119,10 @@ export class ExpensesService {
       });
 
       return {
-        success: true,
         message: id
           ? 'Expense updated successfully'
           : 'Expense created successfully',
-        id: result.id,
+        data: { id: result.id },
       };
     } catch (err: any) {
       return {

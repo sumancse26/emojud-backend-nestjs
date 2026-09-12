@@ -1,9 +1,21 @@
-import { Body, Controller, Get, Param, Post, Query, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UsePipes,
+} from '@nestjs/common';
 import { SalaryService } from './salary.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { idParamSchema, listQuerySchema, saveBodySchema } from 'src/modules/accounts/interfaces/validation.interface';
+import {
+  idParamSchema,
+  listQuerySchema,
+  saveBodySchema,
+} from 'src/modules/accounts/interfaces/validation.interface';
 
-@Controller('api')
+@Controller()
 export class SalaryController {
   constructor(private readonly salaryService: SalaryService) {}
 
@@ -14,7 +26,9 @@ export class SalaryController {
   }
 
   @Get('salary-process/:id')
-  salaryProcessDetail(@Param('id', new ZodValidationPipe(idParamSchema)) id: string) {
+  salaryProcessDetail(
+    @Param('id', new ZodValidationPipe(idParamSchema)) id: string,
+  ) {
     return this.salaryService.detail(id);
   }
 

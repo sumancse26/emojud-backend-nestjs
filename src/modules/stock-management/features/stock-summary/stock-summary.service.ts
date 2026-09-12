@@ -18,7 +18,7 @@ export class StockSummaryService {
       include: { shop: true, warehouse: true, stockDtls: true },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async detail(id: string) {
@@ -27,6 +27,6 @@ export class StockSummaryService {
       include: { shop: true, warehouse: true, stockDtls: true },
     });
     if (!data) throw new NotFoundException('Stock record not found');
-    return { success: true, data };
+    return { data };
   }
 }

@@ -17,7 +17,7 @@ import {
 import type { Request } from 'express';
 import { decodeCookie } from 'src/common/utils/cookie.util';
 import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
-@Controller('api')
+@Controller()
 export class SupplierPaymentController {
   constructor(
     private readonly supplierPaymentService: SupplierPaymentService,

@@ -18,7 +18,7 @@ export class CustomerDueService {
       where,
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { message: 'Fetch successful', data };
   }
 
   async save(data: Record<string, any>) {
@@ -47,15 +47,16 @@ export class CustomerDueService {
           updated_by: toBigInt(data.updated_by ?? data.login_user_id),
         },
       });
-      return { success: true, message: 'Customer due updated successfully', data: updated };
+      return { message: 'Customer due updated successfully', data: updated };
     }
 
     const created = await this.prisma.customerDue.create({
       data: {
         ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by:
+          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
       },
     });
-    return { success: true, message: 'Customer due created successfully', data: created };
+    return { message: 'Customer due created successfully', data: created };
   }
 }

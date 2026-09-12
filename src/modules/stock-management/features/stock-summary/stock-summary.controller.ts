@@ -1,9 +1,12 @@
 import { Controller, Get, Param, Query, UsePipes } from '@nestjs/common';
 import { StockSummaryService } from './stock-summary.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { idParamSchema, listQuerySchema } from 'src/modules/stock-management/interfaces/validation.interface';
+import {
+  idParamSchema,
+  listQuerySchema,
+} from 'src/modules/stock-management/interfaces/validation.interface';
 
-@Controller('api')
+@Controller()
 export class StockSummaryController {
   constructor(private readonly stockSummaryService: StockSummaryService) {}
 

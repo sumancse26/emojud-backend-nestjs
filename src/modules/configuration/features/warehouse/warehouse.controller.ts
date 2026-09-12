@@ -9,7 +9,7 @@ import { decodeCookie } from 'src/common/utils/cookie.util';
 import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
 import type { Request } from 'express';
 
-@Controller('api')
+@Controller()
 export class WarehouseController {
   constructor(private readonly warehouseService: WarehouseService) {}
 

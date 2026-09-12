@@ -3,7 +3,7 @@ import { ReportsService } from './reports.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { listQuerySchema } from 'src/modules/reports/interfaces/validation.interface';
 
-@Controller('api/report')
+@Controller('report')
 export class ReportsController {
   constructor(private readonly service: ReportsService) {}
 

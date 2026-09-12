@@ -1,9 +1,12 @@
 import { Body, Controller, Get, Post, Query, UsePipes } from '@nestjs/common';
 import { UserRolesService } from './user-roles.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { listQuerySchema, saveBodySchema } from 'src/modules/hr/interfaces/validation.interface';
+import {
+  listQuerySchema,
+  saveBodySchema,
+} from 'src/modules/hr/interfaces/validation.interface';
 
-@Controller('api')
+@Controller()
 export class UserRolesController {
   constructor(private readonly userRolesService: UserRolesService) {}
 

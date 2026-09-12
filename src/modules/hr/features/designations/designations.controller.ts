@@ -6,7 +6,7 @@ import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
 import { decodeCookie } from 'src/common/utils/cookie.util';
 import type { Request } from 'express';
 
-@Controller('api')
+@Controller()
 export class DesignationsController {
   constructor(private readonly designationsService: DesignationsService) {}
 

@@ -44,7 +44,7 @@ export class UserShopPermissionService {
 
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async saveBatch(
@@ -99,7 +99,6 @@ export class UserShopPermissionService {
           : 'Permissions saved successfully';
 
     return {
-      success: true,
       message,
     };
   }

@@ -14,7 +14,7 @@ import { createEmployeeSchema } from 'src/modules/hr/interfaces/validation.inter
 import type { CreateEmployeeInput } from 'src/modules/hr/interfaces/validation.interface';
 import { getClientIp, getClientMac } from 'src/common/utils/device-info.util';
 
-@Controller('api')
+@Controller()
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 

@@ -21,7 +21,7 @@ export class CommissionProfitService {
       where,
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { message: 'Fetch successful', data };
   }
 
   async save(data: Record<string, any>) {
@@ -36,8 +36,12 @@ export class CommissionProfitService {
       purchase_rate: data.purchase_rate ? Number(data.purchase_rate) : 0,
       sales_rate: data.sales_rate ? Number(data.sales_rate) : 0,
       profit_amount: data.profit_amount ? Number(data.profit_amount) : 0,
-      commission_percent: data.commission_percent ? Number(data.commission_percent) : 0,
-      commission_amount: data.commission_amount ? Number(data.commission_amount) : 0,
+      commission_percent: data.commission_percent
+        ? Number(data.commission_percent)
+        : 0,
+      commission_amount: data.commission_amount
+        ? Number(data.commission_amount)
+        : 0,
       is_received_commission: toNumber(data.is_received_commission) ?? 0,
       received_date: toDate(data.received_date),
       dml_date: toDate(data.dml_date),
@@ -53,15 +57,16 @@ export class CommissionProfitService {
           updated_by: toBigInt(data.updated_by ?? data.login_user_id),
         },
       });
-      return { success: true, message: 'Commission profit updated successfully', data: updated };
+      return { message: 'Update successful', data: updated };
     }
 
     const created = await this.prisma.shopWiseCommissionProfit.create({
       data: {
         ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by:
+          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
       },
     });
-    return { success: true, message: 'Commission profit created successfully', data: created };
+    return { message: 'Save successful', data: created };
   }
 }

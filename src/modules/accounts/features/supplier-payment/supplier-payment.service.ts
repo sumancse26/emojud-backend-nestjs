@@ -46,7 +46,7 @@ export class SupplierPaymentService {
       ]);
 
       return {
-        success: true,
+        message: 'Fetch successful',
         data,
         summary: {
           no_of_purchase: totalPurchase,
@@ -84,7 +84,7 @@ export class SupplierPaymentService {
         },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -108,7 +108,7 @@ export class SupplierPaymentService {
         },
         orderBy: { supplier_name: 'asc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -155,9 +155,8 @@ export class SupplierPaymentService {
       });
 
       return {
-        success: true,
         message: 'Supplier payment updated successfully',
-        id: updated.id,
+        data: { id: updated.id },
       };
     }
 
@@ -216,7 +215,7 @@ export class SupplierPaymentService {
     return {
       success: true,
       message: 'Supplier payment created successfully',
-      id: created.id,
+      data: { id: created.id },
     };
   }
 }

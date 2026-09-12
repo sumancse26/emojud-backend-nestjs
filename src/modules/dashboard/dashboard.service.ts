@@ -11,7 +11,7 @@ export class DashboardService {
       orderBy: { id: 'desc' },
       take: 20,
     });
-    return { success: true, data };
+    return { data };
   }
 
   async recent() {
@@ -20,7 +20,7 @@ export class DashboardService {
       orderBy: { id: 'desc' },
       take: 10,
     });
-    return { success: true, data };
+    return { data };
   }
 
   async overview() {
@@ -28,7 +28,7 @@ export class DashboardService {
       where: { status: 1 },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async stockOverview() {
@@ -36,6 +36,6 @@ export class DashboardService {
       where: { status: 1 },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 }

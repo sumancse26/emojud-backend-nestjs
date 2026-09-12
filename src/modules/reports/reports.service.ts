@@ -7,7 +7,9 @@ export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async report(type: string, query: Record<string, any> = {}) {
-    const from = query.from_date ? new Date(query.from_date) : new Date('1970-01-01');
+    const from = query.from_date
+      ? new Date(query.from_date)
+      : new Date('1970-01-01');
     const to = query.to_date ? new Date(query.to_date) : new Date('2999-12-31');
 
     if (type === 'daily-sales' || type === 'gross-profit') {
@@ -16,7 +18,7 @@ export class ReportsService {
         include: { invoiceDtls: true },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
     if (type === 'daily-purchase') {
@@ -25,7 +27,7 @@ export class ReportsService {
         include: { purchaseDtls: true },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
     if (type === 'daily-expense') {
@@ -34,7 +36,7 @@ export class ReportsService {
         include: { expenseDtls: true },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
     if (type === 'product-ledger') {
@@ -44,15 +46,19 @@ export class ReportsService {
         where,
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
-    if (type === 'customer-due' || type === 'collection' || type === 'cash-flow') {
+    if (
+      type === 'customer-due' ||
+      type === 'collection' ||
+      type === 'cash-flow'
+    ) {
       const rows = await this.prisma.customerDue.findMany({
         where: { status: 1 },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
     if (type === 'supplier-due') {
@@ -60,7 +66,7 @@ export class ReportsService {
         where: { status: 1 },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
     if (type === 'stock-summary') {
@@ -69,7 +75,7 @@ export class ReportsService {
         include: { stockDtls: true },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data: rows };
+      return { data: rows };
     }
 
     throw new BadRequestException(`Unsupported report: ${type}`);

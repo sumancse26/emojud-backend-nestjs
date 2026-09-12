@@ -11,7 +11,7 @@ export class ShopService {
     const company_id = toBigInt(companyId);
 
     if (company_id == null) {
-      return { success: true, data: [] };
+      return { data: [] };
     }
 
     const data = await this.prisma.shop.findMany({
@@ -20,7 +20,7 @@ export class ShopService {
       },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async userShopList(companyId: number, userId: number) {
@@ -47,6 +47,6 @@ export class ShopService {
       },
     });
 
-    return { success: true, data: shop };
+    return { data: shop };
   }
 }

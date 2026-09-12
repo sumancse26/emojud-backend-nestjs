@@ -45,7 +45,7 @@ export class InvoicesService {
         },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -109,7 +109,7 @@ export class InvoicesService {
         },
       });
       if (!data) throw new NotFoundException('Invoice not found');
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -197,11 +197,10 @@ export class InvoicesService {
       });
 
       return {
-        success: true,
         message: id
           ? 'Invoice updated successfully'
           : 'Invoice created successfully',
-        data: result,
+        data: { id: result.id },
       };
     } catch (err: any) {
       return {

@@ -89,9 +89,7 @@ export class LoginService {
     // 7. Build response (exclude password_hash)
     const { password_hash: _, ...userWithoutPassword } = user;
 
-
     return {
-      success: true,
       message: 'Login successful',
       data: {
         user: userWithoutPassword,
@@ -232,7 +230,6 @@ export class LoginService {
     }
 
     return {
-      success: true,
       message: 'Logged out successfully',
     };
   }
@@ -286,7 +283,6 @@ export class LoginService {
     }
 
     return {
-      success: true,
       data: user,
     };
   }
@@ -298,7 +294,6 @@ export class LoginService {
    */
   async getNavMenu(userId: string, tokenRoleId?: number | null) {
     const success = (data: unknown[] = []) => ({
-      response_code: 200,
       message: 'success',
       data,
     });
@@ -419,7 +414,6 @@ export class LoginService {
     });
 
     return {
-      success: true,
       message: 'Password changed successfully',
       data: user,
     };

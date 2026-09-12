@@ -32,7 +32,7 @@ export class CustomersService {
 
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -67,7 +67,6 @@ export class CustomersService {
       });
 
       return {
-        success: true,
         data: custList,
       };
     } catch (err: any) {
@@ -103,9 +102,8 @@ export class CustomersService {
           },
         });
         return {
-          success: true,
           message: 'Customer updated successfully',
-          id: updated.id,
+          data: { id: updated.id },
         };
       }
 
@@ -116,9 +114,8 @@ export class CustomersService {
         },
       });
       return {
-        success: true,
         message: 'Customer created successfully',
-        id: created.id,
+        data: { id: created.id },
       };
     } catch (err: any) {
       return {

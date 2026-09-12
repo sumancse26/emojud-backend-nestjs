@@ -97,9 +97,8 @@ export class ProductsService {
           },
         });
         return {
-          success: true,
           message: 'Product updated successfully',
-          id: updated.id,
+          data: { id: updated.id },
         };
       }
 
@@ -125,9 +124,8 @@ export class ProductsService {
         },
       });
       return {
-        success: true,
         message: 'Product created successfully',
-        id: created.id,
+        data: { id: created.id },
       };
     } catch (err: any) {
       return {
@@ -170,7 +168,6 @@ export class ProductsService {
       );
 
       return {
-        success: true,
         message: 'Fetched products list',
         data: productList,
       };

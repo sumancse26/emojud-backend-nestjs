@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -15,6 +15,7 @@ import { StockManagementModule } from './modules/stock-management/stock-manageme
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { LookupModule } from './modules/lookup/lookup.module';
+import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 
 @Module({
   imports: [
@@ -37,6 +38,10 @@ import { LookupModule } from './modules/lookup/lookup.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
     },
   ],
 })

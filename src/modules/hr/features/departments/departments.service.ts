@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
-import { toLowerCase } from 'zod';
 
 @Injectable()
 export class DepartmentsService {
@@ -23,7 +22,7 @@ export class DepartmentsService {
       },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async save(data: Record<string, any>, companyId: number, userId: number) {
@@ -46,9 +45,8 @@ export class DepartmentsService {
         },
       });
       return {
-        success: true,
         message: 'Department updated successfully',
-        id: updated.id,
+        data: { id: updated.id },
       };
     }
     const existed = await this.prisma.departments.findFirst({
@@ -62,7 +60,6 @@ export class DepartmentsService {
 
     if (existed) {
       return {
-        success: false,
         message: 'Department already exist',
       };
     }
@@ -74,9 +71,8 @@ export class DepartmentsService {
       },
     });
     return {
-      success: true,
       message: 'Department created successfully',
-      id: created.id,
+      data: { id: created.id },
     };
   }
 }

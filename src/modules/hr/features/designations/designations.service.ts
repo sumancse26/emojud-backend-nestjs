@@ -21,7 +21,7 @@ export class DesignationsService {
         },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -51,9 +51,8 @@ export class DesignationsService {
           },
         });
         return {
-          success: true,
           message: 'Designation updated successfully',
-          id: updated.id,
+          data: { id: updated.id },
         };
       }
 
@@ -80,9 +79,8 @@ export class DesignationsService {
         },
       });
       return {
-        success: true,
         message: 'Designation created successfully',
-        id: created.id,
+        data: { id: created.id },
       };
     } catch (err: any) {
       return {

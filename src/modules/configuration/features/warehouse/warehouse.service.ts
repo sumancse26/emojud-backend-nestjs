@@ -31,7 +31,7 @@ export class WarehouseService {
       },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async save(data: SaveWarehouseInput, loginUserId: number) {
@@ -73,9 +73,8 @@ export class WarehouseService {
         },
       });
       return {
-        success: true,
         message: 'Warehouse updated successfully',
-        id: updated.id,
+        data: { id: updated.id },
       };
     }
 
@@ -86,9 +85,8 @@ export class WarehouseService {
       },
     });
     return {
-      success: true,
       message: 'Warehouse created successfully',
-      id: created.id,
+      data: { id: created.id },
     };
   }
 }

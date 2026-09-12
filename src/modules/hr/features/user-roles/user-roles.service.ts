@@ -16,7 +16,7 @@ export class UserRolesService {
       include: { role: true, user: true },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async save(data: Record<string, any>) {
@@ -35,15 +35,22 @@ export class UserRolesService {
           updated_by: toBigInt(data.updated_by ?? data.login_user_id),
         },
       });
-      return { success: true, message: 'User role updated successfully', data: updated };
+      return {
+        message: 'User role updated successfully',
+        data: { id: updated.id },
+      };
     }
 
     const created = await this.prisma.userRoles.create({
       data: {
         ...payload,
-        created_by: toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by:
+          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
       },
     });
-    return { success: true, message: 'User role created successfully', data: created };
+    return {
+      message: 'User role created successfully',
+      data: { id: created.id },
+    };
   }
 }

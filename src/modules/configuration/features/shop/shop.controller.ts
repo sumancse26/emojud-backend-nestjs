@@ -4,7 +4,7 @@ import { ShopService } from './shop.service';
 import { decodeCookie } from 'src/common/utils/cookie.util';
 import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
 
-@Controller('api')
+@Controller()
 export class ShopController {
   constructor(private readonly shopService: ShopService) {}
 

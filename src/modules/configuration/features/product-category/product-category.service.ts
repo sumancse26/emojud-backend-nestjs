@@ -24,7 +24,7 @@ export class ProductCategoryService {
       },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async subCategoryList(parentCategoryId: number, companyId: number) {
@@ -46,7 +46,7 @@ export class ProductCategoryService {
       },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data };
+    return { data };
   }
 
   async save(data: Record<string, any>) {
@@ -68,7 +68,6 @@ export class ProductCategoryService {
         },
       });
       return {
-        success: true,
         message: 'Category updated successfully',
         data: updated,
       };
@@ -82,7 +81,6 @@ export class ProductCategoryService {
       },
     });
     return {
-      success: true,
       message: 'Category created successfully',
       data: created,
     };

@@ -1,9 +1,21 @@
-import { Body, Controller, Get, Param, Post, Query, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UsePipes,
+} from '@nestjs/common';
 import { PurchasesService } from './purchases.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { idParamSchema, listQuerySchema, saveBodySchema } from 'src/modules/stock-management/interfaces/validation.interface';
+import {
+  idParamSchema,
+  listQuerySchema,
+  saveBodySchema,
+} from 'src/modules/stock-management/interfaces/validation.interface';
 
-@Controller('api')
+@Controller()
 export class PurchasesController {
   constructor(private readonly purchasesService: PurchasesService) {}
 

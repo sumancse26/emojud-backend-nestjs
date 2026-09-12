@@ -30,7 +30,7 @@ import {
   CLEAR_COOKIE_OPTIONS,
 } from 'src/modules/auth/constants/cookie.config';
 
-@Controller('api/auth')
+@Controller('auth')
 export class LoginController {
   constructor(
     private readonly loginService: LoginService,
@@ -61,7 +61,6 @@ export class LoginController {
 
     // Return access token in body (client stores in memory)
     return {
-      success: result.success,
       message: result.message,
       accessToken: result.data.tokens.accessToken,
     };

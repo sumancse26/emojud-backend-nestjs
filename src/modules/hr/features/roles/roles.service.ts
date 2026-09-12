@@ -16,7 +16,7 @@ export class RolesService {
         select: { id: true, short_code: true, role_name: true },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -46,9 +46,8 @@ export class RolesService {
           },
         });
         return {
-          success: true,
           message: 'Role updated successfully',
-          id: updated.id,
+          data: { id: updated.id },
         };
       }
 
@@ -75,9 +74,8 @@ export class RolesService {
         },
       });
       return {
-        success: true,
         message: 'Role created successfully',
-        id: created.id,
+        data: { id: created.id },
       };
     } catch (err: any) {
       return {

@@ -19,7 +19,7 @@ export class SuppliersService {
         },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -46,7 +46,7 @@ export class SuppliersService {
         },
         orderBy: { id: 'desc' },
       });
-      return { success: true, data };
+      return { data };
     } catch (err: any) {
       return {
         success: false,
@@ -80,9 +80,8 @@ export class SuppliersService {
           },
         });
         return {
-          success: true,
           message: 'Supplier updated successfully',
-          id: updated.id,
+          data: { id: updated.id },
         };
       }
       const existed = await this.prisma.suppliers.findFirst({
@@ -103,9 +102,8 @@ export class SuppliersService {
       });
 
       return {
-        success: true,
         message: 'Supplier created successfully',
-        id: created.id,
+        data: { id: created.id },
       };
     } catch (err: any) {
       return {

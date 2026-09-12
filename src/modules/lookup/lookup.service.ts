@@ -46,8 +46,6 @@ export class LookupService {
     );
 
     return {
-      response_code: 200,
-      success: true,
       data: groupedData,
     };
   }

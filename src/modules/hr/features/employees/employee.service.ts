@@ -76,7 +76,7 @@ export class EmployeeService {
       },
       orderBy: { id: 'desc' },
     });
-    return { success: true, data: rows };
+    return { data: rows };
   }
 
   async createEmployee(
@@ -240,11 +240,12 @@ export class EmployeeService {
       });
 
       return {
-        success: true,
         message: 'Saved successfully',
-        id: result.employee.id,
-        employee_code: result.employee.employee_code,
-        tokens: result.tokens,
+        data: {
+          id: result.employee.id,
+          employee_code: result.employee.employee_code,
+          tokens: result.tokens,
+        },
       };
     } catch (error) {
       if (error instanceof HttpException) {

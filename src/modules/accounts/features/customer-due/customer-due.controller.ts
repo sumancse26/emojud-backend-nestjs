@@ -1,9 +1,12 @@
 import { Body, Controller, Get, Post, Query, UsePipes } from '@nestjs/common';
 import { CustomerDueService } from './customer-due.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { listQuerySchema, saveBodySchema } from 'src/modules/accounts/interfaces/validation.interface';
+import {
+  listQuerySchema,
+  saveBodySchema,
+} from 'src/modules/accounts/interfaces/validation.interface';
 
-@Controller('api')
+@Controller()
 export class CustomerDueController {
   constructor(private readonly customerDueService: CustomerDueService) {}
 
