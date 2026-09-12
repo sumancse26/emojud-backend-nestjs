@@ -255,10 +255,16 @@ export const listQuerySchema = z
 export type SaveExpenseInput = z.infer<typeof saveExpenseSchema>;
 export type ExpenseDetailItemInput = z.infer<typeof expenseDetailItemSchema>;
 export type SaveSalaryInput = z.infer<typeof saveSalarySchema>;
-export type SalaryProcessDetailItemInput = z.infer<typeof salaryProcessDetailItemSchema>;
+export type SalaryProcessDetailItemInput = z.infer<
+  typeof salaryProcessDetailItemSchema
+>;
 export type SaveCustomerDueInput = z.infer<typeof saveCustomerDueSchema>;
-export type SaveSupplierPaymentInput = z.infer<typeof saveSupplierPaymentSchema>;
-export type SaveCommissionProfitInput = z.infer<typeof saveCommissionProfitSchema>;
+export type SaveSupplierPaymentInput = z.infer<
+  typeof saveSupplierPaymentSchema
+>;
+export type SaveCommissionProfitInput = z.infer<
+  typeof saveCommissionProfitSchema
+>;
 
 export type AccountListQuery = z.infer<typeof listQuerySchema>;
 export type AccountSaveBody = z.infer<typeof saveBodySchema>;

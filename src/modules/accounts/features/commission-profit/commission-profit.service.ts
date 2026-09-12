@@ -1,30 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { toBigInt, toDate, toNumber } from 'src/common/utils/prisma.util';
+import { type commissionProfitType } from './dto/commission-profit.dto';
 
 @Injectable()
 export class CommissionProfitService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(query: Record<string, any> = {}) {
-    const where: any = {};
-    if (query.shop_id) where.shop_id = toBigInt(query.shop_id);
-    if (query.year_id) where.year_id = toBigInt(query.year_id);
-    if (query.month_id) where.month_id = toBigInt(query.month_id);
-    if (query.invoice_id) where.invoice_id = toBigInt(query.invoice_id);
-    if (query.product_id) where.product_id = toBigInt(query.product_id);
-    if (query.is_received_commission !== undefined)
-      where.is_received_commission = toNumber(query.is_received_commission);
-    if (query.status !== undefined) where.status = toNumber(query.status);
-
+  async list(shopId: number) {
     const data = await this.prisma.shopWiseCommissionProfit.findMany({
-      where,
+      where: { shop_id: shopId },
+      select: {
+        id: true,
+        year_id: true,
+        invoice_id: true,
+        product_id: true,
+        qty: true,
+        purchase_rate: true,
+        sales_rate: true,
+        profit_amount: true,
+        commission_percent: true,
+        commission_amount: true,
+        is_received_commission: true,
+        received_date: true,
+      },
       orderBy: { id: 'desc' },
     });
     return { message: 'Fetch successful', data };
   }
 
-  async save(data: Record<string, any>) {
+  async save(data: commissionProfitType, userId: number) {
     const id = toBigInt(data.id);
     const payload: any = {
       shop_id: toBigInt(data.shop_id) ?? BigInt(1),
@@ -54,7 +59,7 @@ export class CommissionProfitService {
         data: {
           ...payload,
           updated_at: new Date(),
-          updated_by: toBigInt(data.updated_by ?? data.login_user_id),
+          updated_by: toBigInt(userId),
         },
       });
       return { message: 'Update successful', data: updated };
@@ -63,8 +68,7 @@ export class CommissionProfitService {
     const created = await this.prisma.shopWiseCommissionProfit.create({
       data: {
         ...payload,
-        created_by:
-          toBigInt(data.created_by ?? data.login_user_id) ?? BigInt(1),
+        created_by: toBigInt(userId),
       },
     });
     return { message: 'Save successful', data: created };
