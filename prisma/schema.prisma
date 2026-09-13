@@ -111,6 +111,8 @@ model CustomerDue {
   created_by BigInt? @db.BigInt
   updated_at DateTime? @db.Timestamp(6)
   updated_by BigInt? @db.BigInt
+  
+  due_cust_info Customers @relation("due_cust_info", fields:[customer_id], references:[id])
 
   @@map("customer_due")
 }
@@ -131,7 +133,9 @@ model Customers {
   updated_by BigInt? @db.BigInt
 
   invoiceMsts InvoiceMst[] @relation("fk_inv_customer")
+  due_cust_info CustomerDue[] @relation("due_cust_info")
   shop Shop? @relation("fk_cust_shop", fields: [shop_id], references: [id])
+  
   @@map("customers")
 }
 
