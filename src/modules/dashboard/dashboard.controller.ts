@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 
 @Controller('dashboard')
@@ -6,22 +6,27 @@ export class DashboardController {
   constructor(private readonly service: DashboardService) {}
 
   @Get()
-  summary() {
-    return this.service.summary();
+  summary(@Query('shop_id', ParseIntPipe) shopId: number) {
+    return this.service.summary(shopId);
   }
 
   @Get('recent-operations')
-  recent() {
-    return this.service.recent();
+  recent(@Query('shop_id', ParseIntPipe) shopId: number) {
+    return this.service.recent(shopId);
   }
 
   @Get('overview')
-  overview() {
-    return this.service.overview();
+  overview(@Query('shop_id', ParseIntPipe) shopId: number) {
+    return this.service.overview(shopId);
   }
 
   @Get('stock-overview')
-  stockOverview() {
-    return this.service.stockOverview();
+  stockOverview(@Query('shop_id', ParseIntPipe) shopId: number) {
+    return this.service.stockOverview(shopId);
+  }
+
+  @Get('monthly-summary')
+  monthlySummary(@Query('shop_id', ParseIntPipe) shopId: number) {
+    return this.service.monthlySummary(shopId);
   }
 }
