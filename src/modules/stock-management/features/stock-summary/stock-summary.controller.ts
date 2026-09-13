@@ -1,23 +1,26 @@
-import { Controller, Get, Param, Query, UsePipes } from '@nestjs/common';
+import { Controller, Get, Query, UsePipes } from '@nestjs/common';
 import { StockSummaryService } from './stock-summary.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
-  idParamSchema,
-  listQuerySchema,
-} from 'src/modules/stock-management/interfaces/validation.interface';
+  StockQuerySchema,
+  StockDetailsSchema,
+  type stockQueryType,
+  type stockDetailsType,
+} from './dto/stock-summary.dto';
 
 @Controller()
 export class StockSummaryController {
   constructor(private readonly stockSummaryService: StockSummaryService) {}
 
   @Get('stock-summary')
-  @UsePipes(new ZodValidationPipe(listQuerySchema))
-  stock(@Query() q: any) {
-    return this.stockSummaryService.list(q);
+  @UsePipes(new ZodValidationPipe(StockQuerySchema))
+  stock(@Query() q: stockQueryType) {
+    return this.stockSummaryService.list(q.shop_id);
   }
 
-  @Get('stock-summary/:id')
-  stockDetail(@Param('id', new ZodValidationPipe(idParamSchema)) id: string) {
-    return this.stockSummaryService.detail(id);
+  @Get('stock-summary-detail')
+  @UsePipes(new ZodValidationPipe(StockDetailsSchema))
+  stockDetail(@Query() q: stockDetailsType) {
+    return this.stockSummaryService.detail(q);
   }
 }

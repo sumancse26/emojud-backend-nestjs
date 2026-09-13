@@ -467,6 +467,7 @@ model Products {
   units LookupDtl? @relation("fk_unit_lookup", fields: [unit_id], references: [id])
   invoiceDtls InvoiceDtl[] @relation("fk_invd_product")
   productLots ProductLot[] @relation("fk_lot_product")
+  prod_stock StockMst[] @relation("fk_sm_prod")
   stockTransactions StockTransaction[] @relation("fk_st_product") 
   @@map("products")
 }
@@ -708,8 +709,10 @@ model StockMst {
   updated_by BigInt? @db.BigInt
 
   shop Shop? @relation("fk_sm_shop", fields: [shop_id], references: [id])
+  prod_stock Products? @relation("fk_sm_prod", fields: [prod_id], references: [id])
   warehouse Warehouse? @relation("fk_sm_wh", fields: [warehouse_id], references: [id])
   stockDtls StockDtl[] @relation("fk_sd_mst")
+
   @@map("stock_mst")
 }
 
