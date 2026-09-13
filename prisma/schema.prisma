@@ -344,6 +344,7 @@ model LookupDtl {
   tranStatus InvoiceMst[] @relation("fk_lookup_inv_mst")
   brand Products[] @relation("fk_product_lookup")
   units Products[] @relation("fk_unit_lookup")
+  pur_tran_status PurchaseMst[] @relation("fk_pur_lookup_tran_status")
   @@map("lookup_dtl")
 }
 
@@ -503,7 +504,7 @@ model PurchaseMst {
   due_amount Decimal? @db.Decimal(16, 4)
   approved_by BigInt? @db.BigInt
   approved_date DateTime? @db.Date
-  tran_status Int? @default(0) @db.SmallInt
+  tran_status BigInt? @default(0) @db.BigInt
   status Int? @default(1) @db.SmallInt
   created_at DateTime? @default(now()) @db.Timestamp(6)
   created_by BigInt? @db.BigInt
@@ -517,6 +518,7 @@ model PurchaseMst {
 
   shop Shop @relation("fk_pm_shop", fields: [shop_id], references: [id])
   supplier Suppliers @relation("fk_pm_supplier", fields: [supplier_id], references: [id])
+  pur_tran_status LookupDtl? @relation("fk_pur_lookup_tran_status", fields: [tran_status], references: [id])
   purchaseDtls PurchaseDtl[] @relation("fk_pd_mst")
   @@map("purchase_mst")
 }
