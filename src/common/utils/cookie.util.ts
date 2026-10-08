@@ -22,6 +22,12 @@ export function getCookie(req: Request): string | undefined {
 export function decodeCookie<T extends JWTPayload = JWTPayload>(
   req: Request,
 ): T | undefined {
+  // 1. If req.user is already populated by AuthGuard from the Bearer token, return it
+  if ((req as any)?.user) {
+    return (req as any).user as T;
+  }
+
+  // 2. Fallback to extracting and decoding the refresh token cookie
   const token = getCookie(req);
 
   if (!token) {
@@ -34,3 +40,4 @@ export function decodeCookie<T extends JWTPayload = JWTPayload>(
     return undefined;
   }
 }
+
