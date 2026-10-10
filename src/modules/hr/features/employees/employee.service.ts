@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  BadRequestException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -36,6 +37,12 @@ export class EmployeeService {
         nid: true,
         passport_no: true,
         basic_salary: true,
+        users: {
+          select: {
+            username: true,
+          },
+          take: 1,
+        },
         department: {
           select: {
             id: true,
@@ -76,7 +83,12 @@ export class EmployeeService {
       },
       orderBy: { id: 'desc' },
     });
-    return { data: rows };
+    return {
+      data: rows.map(({ users, ...employee }) => ({
+        ...employee,
+        username: users[0]?.username ?? null,
+      })),
+    };
   }
 
   async createEmployee(
@@ -84,8 +96,11 @@ export class EmployeeService {
     deviceMeta?: { ip?: string | null; mac?: string | null },
   ) {
     try {
-      // Hash user password using PasswordServiceService
-      const passwordHash = await this.passwordService.hash(input.password);
+      // Password is optional when updating an employee. The existing hash is
+      // preserved unless a new password is explicitly supplied.
+      const passwordHash = input.password
+        ? await this.passwordService.hash(input.password)
+        : null;
 
       const result = await this.prisma.$transaction(async (tx) => {
         const createdByBigInt = input.created_by
@@ -93,11 +108,15 @@ export class EmployeeService {
           : BigInt(1);
 
         // Find existing records using the unique employee code and username.
-        let employee = input.employee_code
+        let employee = input.id
           ? await tx.employees.findUnique({
-              where: { employee_code: input.employee_code },
+              where: { id: BigInt(input.id) },
             })
-          : null;
+          : input.employee_code
+            ? await tx.employees.findUnique({
+                where: { employee_code: input.employee_code },
+              })
+            : null;
         let user = await tx.users.findUnique({
           where: { username: input.username },
         });
@@ -168,35 +187,43 @@ export class EmployeeService {
         }
 
         user = user ?? linkedUser;
-        user = user
-          ? await tx.users.update({
-              where: { id: user.id },
-              data: {
-                employee_id: employee.id,
-                username: input.username,
-                password_hash: passwordHash,
-                default_role_id: input.default_role_id
-                  ? BigInt(input.default_role_id)
-                  : null,
-                company_id: input.company_id ? BigInt(input.company_id) : null,
-                status: 1,
-                updated_by: createdByBigInt,
-                updated_at: new Date(),
-              },
-            })
-          : await tx.users.create({
-              data: {
-                employee_id: employee.id,
-                username: input.username,
-                password_hash: passwordHash,
-                default_role_id: input.default_role_id
-                  ? BigInt(input.default_role_id)
-                  : null,
-                company_id: input.company_id ? BigInt(input.company_id) : null,
-                status: 1,
-                created_by: createdByBigInt,
-              },
-            });
+        if (user) {
+          user = await tx.users.update({
+            where: { id: user.id },
+            data: {
+              employee_id: employee.id,
+              username: input.username,
+              ...(passwordHash ? { password_hash: passwordHash } : {}),
+              default_role_id: input.default_role_id
+                ? BigInt(input.default_role_id)
+                : null,
+              company_id: input.company_id ? BigInt(input.company_id) : null,
+              status: 1,
+              updated_by: createdByBigInt,
+              updated_at: new Date(),
+            },
+          });
+        } else {
+          if (!passwordHash) {
+            throw new BadRequestException(
+              'Password is required when creating a new employee user',
+            );
+          }
+
+          user = await tx.users.create({
+            data: {
+              employee_id: employee.id,
+              username: input.username,
+              password_hash: passwordHash,
+              default_role_id: input.default_role_id
+                ? BigInt(input.default_role_id)
+                : null,
+              company_id: input.company_id ? BigInt(input.company_id) : null,
+              status: 1,
+              created_by: createdByBigInt,
+            },
+          });
+        }
 
         // 3. Store Session Record for User (device_ip & device_mac from backend meta or input)
         const sessionId = randomUUID();
