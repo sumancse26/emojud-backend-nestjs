@@ -24,11 +24,19 @@ export const PurchaseSchema = z.object({
 export type purchaseType = z.infer<typeof PurchaseSchema>;
 
 export const PurchaseQuerySchema = z.object({
-  id: z.coerce.number().int().positive(),
   shop_id: z.coerce.number().int().positive(),
 });
 
 export type PurchaseQueryType = z.infer<typeof PurchaseQuerySchema>;
+
+export const PurchaseDetailQuerySchema = z.object({
+  id: z.coerce.number().int().positive(),
+  shop_id: z.coerce.number().int().positive(),
+});
+
+export type PurchaseDetailQueryType = z.infer<
+  typeof PurchaseDetailQuerySchema
+>;
 
 export const PurchaseIdSchema = z.coerce.number().int().positive();
 

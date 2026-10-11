@@ -13,6 +13,8 @@ import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
   type PurchaseQueryType,
   PurchaseQuerySchema,
+  PurchaseDetailQuerySchema,
+  type PurchaseDetailQueryType,
   PurchaseSchema,
   type purchaseType,
 } from './dto/purchase.dto';
@@ -31,8 +33,8 @@ export class PurchasesController {
   }
 
   @Get('purchase-details')
-  @UsePipes(new ZodValidationPipe(PurchaseQuerySchema))
-  purchase(@Query() q: PurchaseQueryType) {
+  @UsePipes(new ZodValidationPipe(PurchaseDetailQuerySchema))
+  purchase(@Query() q: PurchaseDetailQueryType) {
     return this.purchasesService.detail(q.id, q.shop_id);
   }
 

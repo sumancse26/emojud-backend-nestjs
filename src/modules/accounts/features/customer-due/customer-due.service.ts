@@ -52,6 +52,11 @@ export class CustomerDueService {
         id: true,
         invoice_no: true,
         customer_id: true,
+        customer: {
+          select: {
+            customer_name: true,
+          },
+        },
         due_amount: true,
       },
       orderBy: { id: 'desc' },
@@ -63,7 +68,10 @@ export class CustomerDueService {
     });
     return {
       message: 'Fetch successful',
-      data,
+      data: data.map(({ customer, ...invoice }) => ({
+        ...invoice,
+        customer_name: customer.customer_name,
+      })),
       summary: {
         total_invoice: data.length || 0,
         total_due: totaldueAmt?._sum?.due_amount || 0,
