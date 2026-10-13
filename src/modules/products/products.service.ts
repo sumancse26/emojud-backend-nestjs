@@ -7,13 +7,41 @@ import { toBigInt, toNumber } from 'src/common/utils/prisma.util';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(shopId: number) {
+  async list(query: Record<string, any> = {}) {
     try {
+      const where: any = {
+        status: query.status ?? 1,
+      };
+
+      if (query.shop_id) where.shop_id = query.shop_id;
+      if (query.id) where.id = query.id;
+      if (query.category_id) where.category_id = query.category_id;
+      if (query.sub_category_id) {
+        where.sub_category_id = query.sub_category_id;
+      }
+      if (query.brand_id) where.brand_id = query.brand_id;
+      if (query.unit_id) where.unit_id = query.unit_id;
+      if (query.product_code) {
+        where.product_code = {
+          contains: query.product_code,
+          mode: 'insensitive',
+        };
+      }
+      if (query.product_name) {
+        where.product_name = {
+          contains: query.product_name,
+          mode: 'insensitive',
+        };
+      }
+      if (query.barcode) {
+        where.barcode = {
+          contains: query.barcode,
+          mode: 'insensitive',
+        };
+      }
+
       const data = await this.prisma.products.findMany({
-        where: {
-          shop_id: shopId,
-          status: 1,
-        },
+        where,
         select: {
           id: true,
           product_code: true,
@@ -67,7 +95,7 @@ export class ProductsService {
         product_code:
           data.product_code || `PRD-${randomUUID().slice(0, 8).toUpperCase()}`,
         specifications: data.specifications,
-        barcode: data.barcode,
+        barcode: data.barcode || null,
         category_id: toBigInt(data.category_id),
         sub_category_id: toBigInt(data.sub_category_id),
         brand_id: toBigInt(data.brand_id),

@@ -158,6 +158,34 @@ export class InvoicesService {
       // 18 = draft, 19 = final submitted.
       const transactionStatus = isSubmit === 1 ? BigInt(19) : BigInt(18);
 
+      const existingInvoice = id
+        ? await this.prisma.invoiceMst.findUnique({
+            where: { id },
+            select: { is_submit: true },
+          })
+        : null;
+
+      if (id && !existingInvoice) {
+        return {
+          success: false,
+          response_code: 404,
+          message: `Invoice with id ${id.toString()} was not found`,
+        };
+      }
+
+      if (id && existingInvoice?.is_submit === BigInt(1)) {
+        return {
+          success: false,
+          response_code: 400,
+          message: 'A submitted invoice cannot be updated',
+        };
+      }
+
+      // Drafts do not affect inventory. Stock is deducted when an invoice is
+      // submitted for the first time, including a draft-to-submit update.
+      const shouldDeductStock =
+        isSubmit === 1 && existingInvoice?.is_submit !== BigInt(1);
+
       const [shop, customer] = await Promise.all([
         this.prisma.shop.findUnique({
           where: { id: shopId },
@@ -236,16 +264,21 @@ export class InvoicesService {
 
         for (const item of products) {
           const productId = toBigInt(item.product_id);
+          const qty = toNumber(item.qty) ?? 0;
 
           if (!productId) {
             throw new Error('product_id is required for every invoice item');
+          }
+
+          if (qty <= 0) {
+            throw new Error('qty must be greater than 0 for every invoice item');
           }
 
           await tx.invoiceDtl.create({
             data: {
               invoice_mst_id: master.id,
               product_id: productId,
-              qty: toNumber(item.qty) ?? 0,
+              qty,
               rate: toNumber(item.rate) ?? toNumber(item.unit_price) ?? 0,
               disc_amt:
                 toNumber(item.disc_amt) ?? toNumber(item.discount_amount) ?? 0,
@@ -254,6 +287,56 @@ export class InvoicesService {
                 toNumber(item.total_amount) ?? toNumber(item.total_price) ?? 0,
             },
           });
+
+          if (shouldDeductStock) {
+            const stock = await tx.stockMst.findFirst({
+              where: {
+                shop_id: shopId,
+                prod_id: productId,
+                status: 1,
+              },
+              select: { id: true, current_stock: true },
+            });
+
+            if (!stock) {
+              throw new Error(
+                `No stock found for product ${productId.toString()}`,
+              );
+            }
+
+            const updatedStock = await tx.stockMst.updateMany({
+              where: {
+                id: stock.id,
+                current_stock: { gte: qty },
+              },
+              data: {
+                current_stock: { decrement: qty },
+                updated_at: new Date(),
+                updated_by: toBigInt(userId),
+              },
+            });
+
+            if (updatedStock.count !== 1) {
+              throw new Error(
+                `Insufficient stock for product ${productId.toString()}`,
+              );
+            }
+
+            await tx.stockTransaction.create({
+              data: {
+                trn_date: new Date(),
+                product_id: productId,
+                shop_id: shopId,
+                transaction_type: 2,
+                qty,
+                ref_type: BigInt(2),
+                ref_id: master.id,
+                ref_no: master.invoice_no,
+                transaction_date: new Date(),
+                created_by: toBigInt(userId),
+              },
+            });
+          }
         }
 
         return master;

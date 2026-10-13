@@ -7,7 +7,7 @@ export class StockSummaryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(shopId: number) {
-    const data = await this.prisma.products.findMany({
+    const products = await this.prisma.products.findMany({
       where: { shop_id: shopId },
       select: {
         id: true,
@@ -21,11 +21,13 @@ export class StockSummaryService {
           },
         },
         prod_stock: {
+          where: { shop_id: shopId, status: 1 },
           select: {
             id: true,
             stock_date: true,
             current_stock: true,
           },
+          orderBy: { id: 'desc' },
         },
         brand: {
           select: {
@@ -44,6 +46,25 @@ export class StockSummaryService {
       },
       orderBy: { id: 'desc' },
     });
+
+    const data = products.map(({ prod_stock, ...product }) => {
+      const availableStock = prod_stock.reduce(
+        (total, stock) => total + Number(stock.current_stock ?? 0),
+        0,
+      );
+
+      return {
+        ...product,
+        prod_stock: prod_stock.length
+          ? {
+              ...prod_stock[0],
+              current_stock: availableStock,
+            }
+          : null,
+        available_stock: availableStock,
+      };
+    });
+
     return { data };
   }
 

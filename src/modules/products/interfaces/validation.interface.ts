@@ -30,6 +30,7 @@ export const productListQuerySchema = z
     unit_id: id.optional(),
     product_code: z.string().optional(),
     product_name: z.string().optional(),
+    barcode: z.string().trim().nullable().optional(),
     status: z.coerce.number().int().optional(),
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().optional(),
@@ -43,7 +44,7 @@ export const saveProductSchema = z
     product_code: z.string().trim().optional(),
     product_description: z.string().optional(),
     sku: z.string().trim().optional(),
-    barcode: z.string().trim().optional(),
+    barcode: z.string().trim().nullable().optional(),
     category_id: id.optional(),
     sub_category_id: id.optional(),
     brand_id: id.optional(),
@@ -82,7 +83,7 @@ export interface ProductDetails {
   product_code?: string;
   product_description?: string;
   sku?: string;
-  barcode?: string;
+  barcode?: string | null;
   category_id?: number | string | bigint;
   sub_category_id?: number | string | bigint;
   brand_id?: number | string | bigint;

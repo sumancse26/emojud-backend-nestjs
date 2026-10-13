@@ -11,7 +11,7 @@ import { ProductsService } from './products.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
   listQuerySchema,
-  saveBodySchema,
+  saveProductSchema,
 } from 'src/modules/products/interfaces/validation.interface';
 import type { Request } from 'express';
 import { decodeCookie } from 'src/common/utils/cookie.util';
@@ -24,11 +24,11 @@ export class ProductsController {
   @Get('products')
   @UsePipes(new ZodValidationPipe(listQuerySchema))
   products(@Query() q: any) {
-    return this.productsService.list(Number(q.shop_id));
+    return this.productsService.list(q);
   }
 
   @Post('products')
-  @UsePipes(new ZodValidationPipe(saveBodySchema))
+  @UsePipes(new ZodValidationPipe(saveProductSchema))
   createProduct(@Body() b: any, @Req() req: Request) {
     const cookieData = decodeCookie<RefreshTokenPayload>(req);
     return this.productsService.save(b, Number(cookieData?.user_id));
