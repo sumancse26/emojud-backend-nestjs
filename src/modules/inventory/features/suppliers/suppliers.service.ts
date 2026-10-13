@@ -64,8 +64,8 @@ export class SuppliersService {
           data.supplier_code || `SUP-${Date.now().toString(36).toUpperCase()}`,
         supplier_name: data.supplier_name,
         phone: data.phone,
-        email: data.email,
-        address: data.address,
+        email: data.email ?? null,
+        address: data.address ?? null,
         previous_due: data.previous_due ? Number(data.previous_due) : 0,
         status: toNumber(data.status) ?? 1,
       };

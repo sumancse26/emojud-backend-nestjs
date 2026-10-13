@@ -21,6 +21,9 @@ export class InvoicesService {
           net_amount: true,
           paid_amount: true,
           due_amount: true,
+          status: true,
+          is_submit: true,
+          tran_status: true,
 
           customer: {
             select: {
@@ -66,6 +69,11 @@ export class InvoicesService {
           discount_amount: true,
           vat_amount: true,
           net_amount: true,
+          paid_amount: true,
+          due_amount: true,
+          status: true,
+          tran_status: true,
+          is_submit: true,
           invoiceDtls: {
             select: {
               id: true,
@@ -121,28 +129,87 @@ export class InvoicesService {
   async save(data: Record<string, any>, userId: number) {
     try {
       const id = toBigInt(data.id);
-      const products: any[] = Array.isArray(data.products) ? data.products : [];
+      const shopId = toBigInt(data.shop_id);
+      const customerId = toBigInt(data.customer_id);
+      const isSubmit = toNumber(data.is_submit) ?? 0;
+      const products: any[] = Array.isArray(data.products)
+        ? data.products
+        : Array.isArray(data.details)
+          ? data.details
+          : [];
+
+      if (!shopId || !customerId) {
+        return {
+          success: false,
+          response_code: 400,
+          message: 'shop_id and customer_id are required',
+        };
+      }
+
+      if (isSubmit !== 0 && isSubmit !== 1) {
+        return {
+          success: false,
+          response_code: 400,
+          message: 'is_submit must be either 0 (draft) or 1 (final submit)',
+        };
+      }
+
+      // Keep invoice statuses consistent with purchase statuses:
+      // 18 = draft, 19 = final submitted.
+      const transactionStatus = isSubmit === 1 ? BigInt(19) : BigInt(18);
+
+      const [shop, customer] = await Promise.all([
+        this.prisma.shop.findUnique({
+          where: { id: shopId },
+          select: { id: true },
+        }),
+        this.prisma.customers.findUnique({
+          where: { id: customerId },
+          select: { id: true, shop_id: true },
+        }),
+      ]);
+
+      if (!shop) {
+        return {
+          success: false,
+          response_code: 400,
+          message: `Shop with id ${shopId.toString()} was not found`,
+        };
+      }
+
+      if (!customer) {
+        return {
+          success: false,
+          response_code: 400,
+          message: `Customer with id ${customerId.toString()} was not found`,
+        };
+      }
+
+      if (customer.shop_id && customer.shop_id !== shopId) {
+        return {
+          success: false,
+          response_code: 400,
+          message: `Customer with id ${customerId.toString()} does not belong to shop ${shopId.toString()}`,
+        };
+      }
 
       const result = await this.prisma.$transaction(async (tx) => {
         const masterPayload: any = {
           invoice_no:
             data.invoice_no || `INV-${randomUUID().slice(0, 8).toUpperCase()}`,
-          shop_id: toBigInt(data.shop_id) ?? BigInt(1),
-          customer_id: toBigInt(data.customer_id) ?? BigInt(1),
+          shop_id: shopId,
+          customer_id: customerId,
           invoice_date: toDate(data.invoice_date) ?? new Date(),
-          total_amount: data.total_amount ? Number(data.total_amount) : 0,
-          discount_amount: data.discount_amount
-            ? Number(data.discount_amount)
-            : 0,
-          vat_amount: data.vat_amount ? Number(data.vat_amount) : 0,
-          net_amount: data.net_amount
-            ? Number(data.net_amount)
-            : data.total_amount
-              ? Number(data.total_amount)
-              : 0,
-          paid_amount: data.paid_amount ? Number(data.paid_amount) : 0,
-          due_amount: data.due_amount ? Number(data.due_amount) : 0,
+          total_amount: toNumber(data.total_amount) ?? 0,
+          discount_amount: toNumber(data.discount_amount) ?? 0,
+          vat_amount: toNumber(data.vat_amount) ?? 0,
+          net_amount:
+            toNumber(data.net_amount) ?? toNumber(data.total_amount) ?? 0,
+          paid_amount: toNumber(data.paid_amount) ?? 0,
+          due_amount: toNumber(data.due_amount) ?? 0,
           status: toNumber(data.status) ?? 1,
+          is_submit: BigInt(isSubmit),
+          tran_status: transactionStatus,
         };
 
         const master = id
@@ -168,27 +235,23 @@ export class InvoicesService {
         }
 
         for (const item of products) {
+          const productId = toBigInt(item.product_id);
+
+          if (!productId) {
+            throw new Error('product_id is required for every invoice item');
+          }
+
           await tx.invoiceDtl.create({
             data: {
               invoice_mst_id: master.id,
-              product_id: toBigInt(item.product_id) ?? BigInt(1),
-              qty: Number(item.qty),
-              rate: item.rate
-                ? Number(item.rate)
-                : item.unit_price
-                  ? Number(item.unit_price)
-                  : 0,
-              disc_amt: item.disc_amt
-                ? Number(item.disc_amt)
-                : item.discount_amount
-                  ? Number(item.discount_amount)
-                  : 0,
-              vat_amt: item.vat_amt ? Number(item.vat_amt) : 0,
-              total_amount: item.total_amount
-                ? Number(item.total_amount)
-                : item.total_price
-                  ? Number(item.total_price)
-                  : 0,
+              product_id: productId,
+              qty: toNumber(item.qty) ?? 0,
+              rate: toNumber(item.rate) ?? toNumber(item.unit_price) ?? 0,
+              disc_amt:
+                toNumber(item.disc_amt) ?? toNumber(item.discount_amount) ?? 0,
+              vat_amt: toNumber(item.vat_amt) ?? 0,
+              total_amount:
+                toNumber(item.total_amount) ?? toNumber(item.total_price) ?? 0,
             },
           });
         }
@@ -197,14 +260,21 @@ export class InvoicesService {
       });
 
       return {
+        success: true,
         message: id
           ? 'Invoice updated successfully'
           : 'Invoice created successfully',
-        data: { id: result.id },
+        data: {
+          id: result.id,
+          status: result.status,
+          tran_status: result.tran_status,
+          is_submit: result.is_submit,
+        },
       };
     } catch (err: any) {
       return {
         success: false,
+        response_code: 500,
         message: err.message,
       };
     }

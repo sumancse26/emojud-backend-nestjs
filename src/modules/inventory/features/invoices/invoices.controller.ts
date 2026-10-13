@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { saveBodySchema } from 'src/modules/inventory/interfaces/validation.interface';
+import { saveInvoiceSchema } from 'src/modules/inventory/interfaces/validation.interface';
 import type { Request } from 'express';
 import { decodeCookie } from 'src/common/utils/cookie.util';
 import type { RefreshTokenPayload } from 'src/modules/auth/jwt/jwt.service';
@@ -32,7 +32,7 @@ export class InvoicesController {
   }
 
   @Post('invoice')
-  @UsePipes(new ZodValidationPipe(saveBodySchema))
+  @UsePipes(new ZodValidationPipe(saveInvoiceSchema))
   saveInvoice(@Body() b: any, @Req() req: Request) {
     const cookieData = decodeCookie<RefreshTokenPayload>(req);
 

@@ -15,6 +15,19 @@ const id = z.preprocess((val) => {
 
 const optionalDate = z.coerce.date().optional();
 
+const optionalString = z.preprocess(
+  (value) => (value === null ? undefined : value),
+  z.string().optional(),
+);
+
+const optionalEmail = z.preprocess(
+  (value) =>
+    value === null || (typeof value === 'string' && value.trim() === '')
+      ? undefined
+      : value,
+  z.string().trim().email('Invalid email address').optional(),
+);
+
 // Common Validation Schemas
 export const idParamSchema = z.coerce.number().int().positive();
 export const textParamSchema = z.string().trim().min(1);
@@ -29,8 +42,8 @@ export const saveCustomerSchema = z
     customer_code: z.string().trim().optional(),
     customer_name: z.string().trim().min(1, 'Customer name is required'),
     phone: z.string().trim().optional(),
-    email: z.string().email('Invalid email address').optional().or(z.literal('')),
-    address: z.string().optional(),
+    email: optionalEmail,
+    address: optionalString,
     previous_due: z.coerce.number().optional(),
     status: z.coerce.number().int().optional(),
     login_user_id: id.optional(),
@@ -51,8 +64,8 @@ export const saveSupplierSchema = z
     supplier_code: z.string().trim().optional(),
     supplier_name: z.string().trim().min(1, 'Supplier name is required'),
     phone: z.string().trim().optional(),
-    email: z.string().email('Invalid email address').optional().or(z.literal('')),
-    address: z.string().optional(),
+    email: optionalEmail,
+    address: optionalString,
     previous_due: z.coerce.number().optional(),
     status: z.coerce.number().int().optional(),
     login_user_id: id.optional(),
@@ -95,6 +108,7 @@ export const saveInvoiceSchema = z
     payment_method_id: id.optional(),
     remarks: z.string().optional(),
     status: z.coerce.number().int().optional(),
+    is_submit: z.coerce.number().int().min(0).max(1).optional(),
     login_user_id: id.optional(),
     created_by: id.optional(),
     updated_by: id.optional(),
@@ -118,8 +132,8 @@ export const saveBodySchema = z
     supplier_name: z.string().optional(),
     invoice_no: z.string().optional(),
     phone: z.string().optional(),
-    email: z.string().optional(),
-    address: z.string().optional(),
+    email: optionalEmail,
+    address: optionalString,
     sales_date: optionalDate,
     invoice_date: optionalDate,
     previous_due: z.coerce.number().optional(),

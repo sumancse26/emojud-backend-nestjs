@@ -32,17 +32,61 @@ export class CustomerDueService {
   }
 
   async pendingDueList(shopId: number) {
-    const data = await this.prisma.customers.findMany({
-      where: { shop_id: shopId, previous_due: { gt: 0 }, status: 1 },
-      omit: {
-        status: true,
-        created_at: true,
-        created_by: true,
-        updated_at: true,
-        updated_by: true,
-      },
-      orderBy: { id: 'desc' },
-    });
+    const [customers, invoices] = await Promise.all([
+      this.prisma.customers.findMany({
+        where: { shop_id: shopId, status: 1 },
+        select: {
+          id: true,
+          shop_id: true,
+          customer_code: true,
+          customer_name: true,
+          phone: true,
+          email: true,
+          address: true,
+          previous_due: true,
+        },
+        orderBy: { id: 'desc' },
+      }),
+      this.prisma.invoiceMst.findMany({
+        where: {
+          shop_id: shopId,
+          status: 1,
+          is_submit: BigInt(1),
+          due_amount: { gt: 0 },
+        },
+        select: {
+          customer_id: true,
+          due_amount: true,
+        },
+      }),
+    ]);
+
+    const invoiceDueByCustomer = new Map<string, number>();
+
+    for (const invoice of invoices) {
+      const customerId = invoice.customer_id.toString();
+      const due = Number(invoice.due_amount ?? 0);
+      invoiceDueByCustomer.set(
+        customerId,
+        (invoiceDueByCustomer.get(customerId) ?? 0) + due,
+      );
+    }
+
+    const data = customers
+      .map((customer) => {
+        const previousDue = Number(customer.previous_due ?? 0);
+        const invoiceDue = invoiceDueByCustomer.get(customer.id.toString()) ?? 0;
+        const dueAmount = previousDue + invoiceDue;
+
+        return {
+          ...customer,
+          previous_due: previousDue,
+          invoice_due: invoiceDue,
+          due_amount: dueAmount,
+        };
+      })
+      .filter((customer) => customer.due_amount > 0);
+
     return { message: 'Fetch successful', data };
   }
   async invoiceDueList(shopId: number) {
