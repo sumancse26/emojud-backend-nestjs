@@ -1,98 +1,253 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Emojud Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Production-grade REST API for the **Emojud ERP** platform — an inventory, sales, HR, and accounting management system built for multi-shop retail businesses.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Layer | Technology |
+|---|---|
+| **Runtime** | Node.js (ES2023) |
+| **Framework** | NestJS 11 |
+| **Language** | TypeScript 5 (strict null checks) |
+| **ORM** | Prisma ORM 7 with `@prisma/adapter-pg` driver |
+| **Database** | PostgreSQL |
+| **Auth** | JWT (HS256) via `jose` — access + refresh token rotation |
+| **Validation** | Zod 4 |
+| **Password Hashing** | bcrypt |
 
-## Project setup
+---
 
-```bash
-$ npm install
+## Project Structure
+
+```
+src/
+├── main.ts                        # Bootstrap, CORS, global prefix
+├── app.module.ts                  # Root module with global guard & interceptor
+├── common/
+│   ├── decorators/                # @Public(), custom param decorators
+│   ├── interceptor/               # ResponseInterceptor (uniform API envelope)
+│   ├── interfaces/                # Shared TypeScript interfaces
+│   ├── pipes/                     # Validation pipes
+│   └── utils/                     # Cookie helpers, utility functions
+├── prisma/
+│   ├── prisma.module.ts
+│   └── prisma.service.ts          # PrismaClient with pg driver adapter
+└── modules/
+    ├── auth/                      # JWT service, cookie config, login/logout/refresh
+    ├── guard/                     # Global AuthGuard (Bearer token verification)
+    ├── dashboard/                 # Dashboard summary & metrics
+    ├── configuration/             # Shops, departments, designations, roles, warehouses
+    ├── hr/                        # Employee CRUD with user+session provisioning
+    ├── products/                  # Product & category management
+    ├── inventory/                 # Stock summaries, shop-wise products
+    ├── stock-management/          # Purchase & sales invoice processing
+    ├── accounts/                  # Suppliers, customers, dues, payments, expenses
+    ├── reports/                   # Parameterized reporting engine
+    └── lookup/                    # Lookup/metadata tables
 ```
 
-## Compile and run the project
+---
+
+## Authentication & Authorization
+
+The API uses a **dual-token** architecture with automatic token rotation:
+
+| Token | Purpose | Lifetime | Storage |
+|---|---|---|---|
+| **Access Token** | Authenticates API requests | **15 minutes** | Client memory (Authorization header) |
+| **Refresh Token** | Issues new access tokens | **7 days** | HTTP-only secure cookie |
+
+### Flow
+
+1. **Login** — `POST /api/auth/login` validates credentials, creates a server-side session, and returns an `accessToken` in the body + sets the `refresh_token` HTTP-only cookie.
+2. **API Requests** — Send `Authorization: Bearer <accessToken>` header. The global `AuthGuard` verifies the token on every request (except `@Public()` routes).
+3. **Token Refresh** — `POST /api/auth/refresh` reads the cookie, rotates the session, and issues a new token pair.
+4. **Logout** — `POST /api/auth/logout` invalidates the session and clears the cookie.
+
+### Security Measures
+
+- HTTP-only, Secure (production), SameSite=Strict cookies prevent XSS/CSRF
+- Short-lived access tokens (15m) minimize the blast radius of token theft
+- Session-based refresh tokens with server-side invalidation
+- bcrypt password hashing with salt rounds
+- JWT payload validation with type + integer safety checks
+- CORS whitelist with explicit origin validation
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** ≥ 18
+- **PostgreSQL** ≥ 14
+- **npm** ≥ 9
+
+### Installation
 
 ```bash
-# development
-$ npm run start
+# Clone the repository
+git clone <repository-url>
+cd emojud-backend-nestjs
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Install dependencies
+npm install
 ```
 
-## Run tests
+### Environment Configuration
+
+Create a `.env` file in the project root:
+
+```env
+# Database
+DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/<database>"
+
+# JWT Secrets — use strong, unique values in production (min 32 chars)
+JWT_ACCESS_SECRET="<generate-a-secure-random-string>"
+JWT_REFRESH_SECRET="<generate-a-different-secure-random-string>"
+
+# Token Expiration
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
+
+# CORS — comma-separated list of allowed frontend origins
+FRONTEND_URL="https://yourdomain.com"
+
+# Server
+PORT=3000
+NODE_ENV=production
+```
+
+> [!IMPORTANT]
+> Never commit `.env` to version control. The JWT secrets in the repository are **development-only placeholders** and must be replaced with cryptographically random strings in production.
+
+### Database Setup
 
 ```bash
-# unit tests
-$ npm run test
+# Generate Prisma Client
+npx prisma generate
 
-# e2e tests
-$ npm run test:e2e
+# Run migrations
+npx prisma migrate deploy
 
-# test coverage
-$ npm run test:cov
+# (Development only) Open Prisma Studio
+npx prisma studio
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Running the Application
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Development (watch mode)
+npm run start:dev
+
+# Production build
+npm run build
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The API will be available at `http://localhost:3000/api`.
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## API Overview
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+All endpoints are prefixed with `/api`. Protected endpoints require a `Bearer <accessToken>` in the `Authorization` header.
 
-## Support
+| Module | Base Path | Description |
+|---|---|---|
+| **Auth** | `/api/auth` | Login, logout, refresh, profile, change password, nav menu |
+| **HR** | `/api/employee` | Employee lifecycle with auto user + session creation |
+| **Products** | `/api/products` | Product CRUD with category/subcategory hierarchy |
+| **Configuration** | `/api/shop`, `/api/departments`, `/api/designation`, `/api/role`, `/api/warehouse` | Organization entities |
+| **Transactions** | `/api/purchase`, `/api/invoice` | Purchase orders & sales invoices with line items |
+| **Parties** | `/api/suppliers`, `/api/customers` | Supplier/customer management with dues & payments |
+| **Inventory** | `/api/stock-summary`, `/api/shop-wise-products` | Stock tracking & shop-level product views |
+| **Accounts** | `/api/expense`, `/api/shop-wise-commission-profit` | Expense tracking & profitability |
+| **Dashboard** | `/api/dashboard` | Aggregated metrics, recent ops, stock overview |
+| **Reports** | `/api/report/:type` | Parameterized report generation |
+| **Permissions** | `/api/user-wise-permission` | Bulk user shop permission management |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+For complete endpoint documentation with request/response examples, see [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md).
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## API Response Format
+
+All responses follow a consistent envelope:
+
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": { ... }
+}
+```
+
+Error responses:
+
+```json
+{
+  "success": false,
+  "message": "Descriptive error message",
+  "statusCode": 401
+}
+```
+
+---
+
+## Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run start:dev` | Start in watch mode (development) |
+| `npm run start:debug` | Start in debug + watch mode |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run start:prod` | Run compiled production build |
+| `npm run lint` | Lint and auto-fix with ESLint |
+| `npm run format` | Format code with Prettier |
+| `npm run test` | Run unit tests |
+| `npm run test:e2e` | Run end-to-end tests |
+| `npm run test:cov` | Generate test coverage report |
+
+---
+
+## Production Deployment
+
+### Build
+
+```bash
+npm run build
+```
+
+This compiles TypeScript to the `dist/` directory with source maps.
+
+### Environment Checklist
+
+- [ ] `NODE_ENV=production`
+- [ ] Strong, unique `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` (≥ 32 characters)
+- [ ] `DATABASE_URL` pointing to production PostgreSQL with SSL
+- [ ] `FRONTEND_URL` set to exact production origin(s) for CORS
+- [ ] Run `npx prisma migrate deploy` before first start
+- [ ] Configure reverse proxy (nginx/Caddy) with HTTPS termination
+
+### Run
+
+```bash
+# Direct
+node dist/main.js
+
+# With process manager (recommended)
+pm2 start dist/main.js --name emojud-api
+
+# With Docker
+docker build -t emojud-api .
+docker run -p 3000:3000 --env-file .env emojud-api
+```
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is proprietary and confidential. Unauthorized copying, distribution, or modification is strictly prohibited.
