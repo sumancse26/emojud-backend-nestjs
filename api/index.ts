@@ -3,7 +3,8 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import express, { Express, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import { AppModule } from '../src/app.module';
+// @ts-ignore
+import { AppModule } from '../dist/src/app.module.js';
 
 let cachedServer: Express | null = null;
 
