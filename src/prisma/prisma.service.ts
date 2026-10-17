@@ -11,15 +11,31 @@ export class PrismaService
 {
   constructor() {
     const connectionString = process.env.DATABASE_URL;
-    const adapter = new PrismaPg({ connectionString });
+    if (!connectionString) {
+      console.warn(
+        '⚠️ DATABASE_URL is not set in environment variables. Database queries will fail.',
+      );
+    }
+    const adapter = new PrismaPg({ connectionString: connectionString || '' });
     super({ adapter });
   }
 
   async onModuleInit() {
-    await this.$connect();
+    try {
+      if (process.env.DATABASE_URL) {
+        await this.$connect();
+        console.log('✅ Connected to database successfully.');
+      }
+    } catch (err) {
+      console.error('❌ Failed to connect to database in onModuleInit:', err);
+    }
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
+    try {
+      await this.$disconnect();
+    } catch (err) {
+      console.error('❌ Failed to disconnect from database:', err);
+    }
   }
 }

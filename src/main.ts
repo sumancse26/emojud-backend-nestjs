@@ -1,3 +1,4 @@
+import { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
@@ -11,11 +12,14 @@ Object.defineProperty(BigInt.prototype, 'toJSON', {
   enumerable: false,
 });
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+export function configureApp(app: INestApplication) {
   app.use(cookieParser());
 
-  const allowedOrigins = (process.env.FRONTEND_URL || process.env.CORS_ORIGIN || '')
+  const allowedOrigins = (
+    process.env.FRONTEND_URL ||
+    process.env.CORS_ORIGIN ||
+    ''
+  )
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
@@ -58,7 +62,22 @@ async function bootstrap() {
     exposedHeaders: ['Set-Cookie'],
   });
 
-  app.setGlobalPrefix('api');
-  await app.listen(process.env.PORT ?? 3000);
+  // Exclude public root routes from the '/api' prefix so they can be accessed directly
+  app.setGlobalPrefix('api', {
+    exclude: ['/', 'health', 'welcome', 'api'],
+  });
 }
-bootstrap();
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  configureApp(app);
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`🚀 Emojud backend is running on: http://localhost:${port}`);
+}
+
+// In standard local or container runtime, start server
+if (!process.env.VERCEL) {
+  bootstrap();
+}

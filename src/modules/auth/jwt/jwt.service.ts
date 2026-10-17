@@ -26,9 +26,12 @@ export class JwtService {
   private readonly refreshSecret: Uint8Array;
 
   constructor(private readonly configService: ConfigService) {
-    const accessSecret = configService.getOrThrow<string>('JWT_ACCESS_SECRET');
+    const accessSecret =
+      configService.get<string>('JWT_ACCESS_SECRET') ||
+      'fallback-secret-access-key-change-in-prod';
     const refreshSecret =
-      configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+      configService.get<string>('JWT_REFRESH_SECRET') ||
+      'fallback-secret-refresh-key-change-in-prod';
 
     this.accessSecret = new TextEncoder().encode(accessSecret);
     this.refreshSecret = new TextEncoder().encode(refreshSecret);
@@ -54,7 +57,7 @@ export class JwtService {
       .setSubject(user.user_id.toString())
       .setIssuedAt()
       .setExpirationTime(
-        this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN'),
+        this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m',
       )
       .sign(this.accessSecret);
   }
@@ -76,7 +79,7 @@ export class JwtService {
       .setSubject(userId.toString())
       .setIssuedAt()
       .setExpirationTime(
-        this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN'),
+        this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d',
       )
       .sign(this.refreshSecret);
   }
