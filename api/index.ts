@@ -1,8 +1,11 @@
-const { NestFactory } = require('@nestjs/core');
-const { ExpressAdapter } = require('@nestjs/platform-express');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const path = require('path');
+import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express, { Express, Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
+import path from 'path';
+import { AppModule } from '../src/app.module';
+
+let cachedServer: Express | null = null;
 
 // Prisma returns bigint values, while JSON.stringify cannot serialize bigint.
 Object.defineProperty(BigInt.prototype, 'toJSON', {
@@ -12,33 +15,7 @@ Object.defineProperty(BigInt.prototype, 'toJSON', {
   enumerable: false,
 });
 
-function loadAppModule() {
-  const candidates = [
-    path.join(__dirname, '../dist/src/app.module.js'),
-    path.join(__dirname, '../dist/src/app.module'),
-    path.join(__dirname, './dist/src/app.module.js'),
-    path.join(__dirname, '../dist/app.module.js'),
-    path.join(process.cwd(), 'dist/src/app.module.js'),
-  ];
-
-  for (const candidate of candidates) {
-    try {
-      const mod = require(candidate);
-      if (mod && mod.AppModule) {
-        return mod.AppModule;
-      }
-    } catch (e) {
-      // Continue trying next candidate
-    }
-  }
-
-  // Fallback direct require
-  return require('../dist/src/app.module').AppModule;
-}
-
-let cachedServer = null;
-
-function configureApp(app) {
+function configureApp(app: any) {
   app.use(cookieParser());
 
   const allowedOrigins = (
@@ -51,7 +28,7 @@ function configureApp(app) {
     .filter(Boolean);
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (origin: string, callback: any) => {
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       if (
@@ -84,9 +61,8 @@ function configureApp(app) {
   });
 }
 
-async function bootstrapServer() {
+async function bootstrapServer(): Promise<Express> {
   if (!cachedServer) {
-    const AppModule = loadAppModule();
     const expressApp = express();
     const app = await NestFactory.create(
       AppModule,
@@ -100,7 +76,7 @@ async function bootstrapServer() {
   return cachedServer;
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req: Request, res: Response) {
   try {
     // If Vercel rewrote the URL, preserve the original path from x-matched-path
     const matchedPath = req.headers['x-matched-path'];
@@ -112,7 +88,7 @@ module.exports = async function handler(req, res) {
 
     const server = await bootstrapServer();
     return server(req, res);
-  } catch (error) {
+  } catch (error: any) {
     console.error('CRITICAL SERVERLESS HANDLER ERROR:', error);
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
@@ -125,4 +101,4 @@ module.exports = async function handler(req, res) {
       }),
     );
   }
-};
+}
