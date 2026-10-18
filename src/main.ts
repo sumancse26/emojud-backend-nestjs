@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
+import { loadJose } from './common/utils/jose-loader.js';
 import { AppModule } from './app.module';
 
 // Prisma returns bigint values, while JSON.stringify cannot serialize bigint.
@@ -69,6 +70,7 @@ export function configureApp(app: INestApplication) {
 }
 
 async function bootstrap() {
+  await loadJose();
   const app = await NestFactory.create(AppModule);
   configureApp(app);
 

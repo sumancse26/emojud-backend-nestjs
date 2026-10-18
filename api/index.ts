@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 // @ts-ignore
 import { AppModule } from '../dist/src/app.module.js';
+// @ts-ignore
+import { loadJose } from '../dist/src/common/utils/jose-loader.js';
 
 let cachedServer: Express | null = null;
 
@@ -64,6 +66,7 @@ function configureApp(app: any) {
 
 async function bootstrapServer(): Promise<Express> {
   if (!cachedServer) {
+    await loadJose();
     const expressApp = express();
     const app = await NestFactory.create(
       AppModule,

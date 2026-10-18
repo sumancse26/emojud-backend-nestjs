@@ -1,5 +1,6 @@
 import type { Request } from 'express';
-import { decodeJwt, type JWTPayload } from 'jose';
+import type { JWTPayload } from 'jose';
+import { getJose } from './jose-loader.js';
 import { REFRESH_TOKEN_COOKIE } from 'src/modules/auth/constants/cookie.config';
 
 /**
@@ -35,7 +36,7 @@ export function decodeCookie<T extends JWTPayload = JWTPayload>(
   }
 
   try {
-    return decodeJwt(token) as T;
+    return getJose().decodeJwt(token) as T;
   } catch {
     return undefined;
   }

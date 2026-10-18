@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JWTPayload, SignJWT, jwtVerify } from 'jose';
+import type { JWTPayload } from 'jose';
+import { getJose } from '../../../common/utils/jose-loader.js';
 
 export interface AccessTokenPayload extends JWTPayload {
   sub: string;
@@ -43,6 +44,7 @@ export class JwtService {
     company_id?: number | null;
     role_id?: number | null;
   }): Promise<string> {
+    const { SignJWT } = getJose();
     return new SignJWT({
       user_id: user.user_id,
       company_id: user.company_id ?? null,
@@ -68,6 +70,7 @@ export class JwtService {
     companyId?: number | null,
     roleId?: number | null,
   ): Promise<string> {
+    const { SignJWT } = getJose();
     return new SignJWT({
       user_id: userId,
       company_id: companyId ?? null,
@@ -85,6 +88,7 @@ export class JwtService {
   }
   async verifyAccessToken(token: string): Promise<AccessTokenPayload> {
     try {
+      const { jwtVerify } = getJose();
       const { payload } = await jwtVerify(token, this.accessSecret, {
         algorithms: ['HS256'],
       });
@@ -108,6 +112,7 @@ export class JwtService {
   }
   async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
     try {
+      const { jwtVerify } = getJose();
       const { payload } = await jwtVerify(token, this.refreshSecret, {
         algorithms: ['HS256'],
       });
