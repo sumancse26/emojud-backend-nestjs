@@ -21,24 +21,38 @@ Object.defineProperty(BigInt.prototype, 'toJSON', {
 function configureApp(app: any) {
   app.use(cookieParser());
 
-  const allowedOrigins = (
-    process.env.FRONTEND_URL ||
-    process.env.CORS_ORIGIN ||
-    ''
-  )
+  const rawOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.CORS_ORIGIN,
+    'https://emojud.netlify.app',
+  ]
+    .filter(Boolean)
+    .join(',');
+
+  const allowedOrigins = rawOrigins
     .split(',')
-    .map((origin) => origin.trim())
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
   app.enableCors({
     origin: (origin: string, callback: any) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      if (/^https:\/\/([a-z0-9-]+--)?emojud\.netlify\.app$/i.test(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
       if (
         allowedOrigins.length === 0 ||
         process.env.NODE_ENV !== 'production'
       ) {
-        if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin)) {
           return callback(null, true);
         }
       }
@@ -54,8 +68,13 @@ function configureApp(app: any) {
       'Authorization',
       'Cookie',
       'Set-Cookie',
+      'Cache-Control',
+      'Pragma',
+      'Expires',
+      'X-CSRF-Token',
     ],
-    exposedHeaders: ['Set-Cookie'],
+    exposedHeaders: ['Set-Cookie', 'Authorization'],
+    optionsSuccessStatus: 204,
   });
 
   // Exclude public root routes from the '/api' prefix so they can be accessed directly
